@@ -38,25 +38,25 @@ $ yarn add c-promise2
 ```
 
 #### CDN
-- [development UMD version](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js)
+- [development UMD version with ](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js) 
+(additional error handling activated)
 
-- [production UMD version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.umd.js)
+- [production UMD version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.umd.js) (or [minified](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.umd.min.js) ~9KB)
 
 - [production CommonJS version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.cjs.js)
 
 - [production ESM version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.mjs)
 
 ## Features / Advantages
-- there are no any dependencies (except [native] Promise), browser support
-- cancellation sequence
-- supports cancellation of the whole chain - rejects the deepest pending promise in the chain
+- there are no any dependencies (except [native] Promise)
+- browser support
+- :fire: supports cancellation of the whole chain - rejects the deepest pending promise in the chain
 - supports onCancel event handler to abort some internal work (clear timers, close requests etc.)
 - supports built-in signal interface for API that supports it (like fetch method)
-- proper handling of manually throwing of the `CanceledError` by the chain
-- progress capturing to handle progress of the chain, useful for long-term operations
+- proper handling of `CanceledError` errors manually thrown inside the chain
+- :fire: progress capturing with result scaling to handle progress of the whole chain (including nested promise chains), useful for long-term operations
 - ability to install the `weight` for each promise in the chain
 - ability to attach meta info on each setting of the progress
-- supports capturing progress and scaling the result of the internal promise chain returned by the `then` method
 - the `delay` method to return promise that will be resolved with the value after timeout
 - static methods `all`, `race` support cancellation and will cancel all other pending promises after they resolved
 - the `catch` method supports error class filtering
