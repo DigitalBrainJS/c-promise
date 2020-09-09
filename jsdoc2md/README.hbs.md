@@ -5,23 +5,37 @@
 
 ## SYNOPSIS
 
-CancelablePromise is an implementation of the Promise with some extra features
-like cancellation, timeouts and progress capturing. This is a subclass of the Promise provided
-by the environment.
+CPromise is a subclass of the Promise provided by the environment with some extra features
+like cancellation, timeouts and progress capturing. 
 
 In terms of the library **the cancellation means rejection of the deepest promise in
 the chain with a special error subclass**.
 
 It supports cancellation of the whole chain, not just a single promise.
-The cancellation could be handled be the above standing chains, since this is just
+The cancellation could be handled by the above standing chains, since it's just
 throwing a special error and invoking onCancel listeners and/or notify subscribers by the signals
-(using own AbortController implementation).
+using AbortController (built-in implementation or native if it's available).
+
+This lib can be used on the backend and frontend sides. 
+The package consists pre-built bundles with umd, cjs, mjs versions.
 
 ## Why
 
 You may face with a challenge when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
+
+## Installation
+
+Install for node.js using npm/yarn:
+
+``` bash
+$ npm install c-promise
+```
+
+``` bash
+$ yarn add c-promise
+```
 
 ## Features / Advantages
 - there are no any dependencies (except [native] Promise), browser support
@@ -38,6 +52,16 @@ has lost its relevance to you.
 - static methods `all`, `race` support cancellation and will cancel all other pending promises after they resolved
 - the `catch` method supports error class filtering
 
+## Live Example
+
+![Browser playground with fetch](http://g.recordit.co/E6e97qRPoY.gif)
+
+## Playground
+- Clone https://github.com/DigitalBrainJS/c-promise.git repo
+- Run npm install to install dev-dependencies
+- Open playground/basic.js file with a basic example
+- Run this file using npm run playground or npm run playground:watch command to see the result
+
 ## Usage example
 A font-end example of wrapping fetch to the CPromise and handling cancellation using signals (AbortController)
 ````javascript
@@ -52,8 +76,8 @@ A font-end example of wrapping fetch to the CPromise and handling cancellation u
 
     setTimeout(()=> chain.cancel(), 1000);
 ````
-![Browser playground with fetch](http://g.recordit.co/E6e97qRPoY.gif)
-Handling cancellation with `onCancel` listeners (see the live demo):
+
+Handling cancellation with `onCancel` listeners (see the live demo in the git repo):
 ````javascript
 const timestamp= Date.now();
 
@@ -125,11 +149,6 @@ Is canceled: true
 
 Process finished with exit code 0
 ```
-## Playground
-- Clone https://github.com/DigitalBrainJS/c-promise.git repo
-- Run npm install to install dev-dependencies
-- Open playground/basic.js file with a basic example
-- Run this file using npm run playground or npm run playground:watch command to see the result
 
 ## API Reference
 
