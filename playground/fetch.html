@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fetch cancellation</title>
+  <script src="../dist/c-promise.umd.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/progressbar.js/0.8.0/progressbar.min.js"></script>
+  <style>
+    body {
+      margin: 20px;
+    }
+
+    #container {
+      width: 200px;
+      height: 200px;
+      position: relative;
+      float: right;
+      font-size: 3rem;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    #log {
+      display: inline-block;
+      width: 800px;
+      height: 300px;
+      font-size: 14px;
+      border: 1px black solid;
+      overflow: scroll;
+    }
+
+    #log > div {
+      margin: 10px;
+    }
+
+    #log .value {
+      background-color: #cad2b4;
+      padding: 3px;
+      margin: 3px;
+    }
+
+    #log .timestamp {
+      color: red;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+<div>
+  <div id="log"></div>
+  <div id="container"></div>
+  <div id="controls">
+    <button onclick="start()">Start the Job</button>
+    <button onclick="abort()">Abort the Job</button>
+  </div>
+</div>
+
+<script>
+    const url = "https://run.mocky.io/v3/753aa609-65ae-4109-8f83-9cfe365290f0?mocky-delay=5s";
+    let timestamp = Date.now();
+    const logElement = document.querySelector('#log');
+    const bar = new ProgressBar.Circle('#container', {
+        color: '#aaa',
+        strokeWidth: 4,
+        trailWidth: 1,
+        easing: 'easeInOut',
+        duration: 500,
+        text: {
+            autoStyleContainer: false
+        },
+        from: {color: '#aaa', width: 1},
+        to: {color: '#333', width: 4},
+        step: function (state, circle) {
+            circle.setText(Math.round(circle.value() * 100));
+        }
+    });
+
+    const log = (message, ...values) => {
+        const diff = Date.now() - timestamp;
+        console.log(`[${diff}ms] ${message}`, ...values);
+        logElement.insertAdjacentHTML('beforeend', `<div><span class="timestamp">[${diff}ms]</span> ${message} ${values.map(value => `<span class="value">${value}</span>`)}</div>`);
+        logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    const clearLog = () => logElement.innerHTML = "";
+
+    function cancelableFetch(url) {
+        return new CPromise((resolve, reject, {signal}) => {
+            fetch(url, {signal}).then(resolve, reject);
+        })
+    }
+
+    const doLongTermJob = (url) => {
+        timestamp = Date.now();
+
+        return CPromise.delay(1000)
+            .then((v, scope)=> scope.progress(0.1, 'Start fetching...'))
+            .then(()=> cancelableFetch(url))
+            .then(response => response.json())
+            .then(async (data, scope) => {
+                scope.progress(0.01, 'response received... but let\'s pretend that we are doing other important operations')
+
+                for (let i = 0; i < 1; i += .05) {
+                    scope.progress(i, [
+                            "initializing...",
+                            "searching started",
+                            "working....",
+                            "almost done",
+                            "almost done seriously!"
+                        ][Math.floor(i * 5)]
+                    );
+                    await CPromise.delay(500);
+                }
+                return data;
+            }).weight(10)
+            .then(data => {
+                return CPromise.delay(1000, data);
+            })
+    };
+
+    let chain;
+
+    function start() {
+        clearLog();
+        abort();
+        chain = doLongTermJob(url).progress((value, scope, data) => {
+            const description = data || '';
+            log(`Job progress [${(value * 100).toFixed(1)}%] description: ${description}`)
+            bar.animate(value);
+        }).on('cancel', () => {
+            log('Cancel event handled');
+            bar.animate(0);
+        }).then(result => {
+            log(`Job done with result: ${JSON.stringify(result)}`)
+        }, err => {
+            log('Job failed with error: ', err);
+        })
+    }
+
+    function abort() {
+        if (chain) {
+            chain.cancel();
+            chain = null;
+        }
+    }
+
+    log('Hey! Press the "Start the job" button to start/restart promise sequence with progress monitoring');
+    log('Press the "Abort the job" button to cancel the promise chain.');
+    log("Try to press it at the fetch stage to see that the request actually aborted");
+    log("If you like this project please, show your support with a GitHub ⭐️");
+
+</script>
+</body>
+</html>

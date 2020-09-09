@@ -1,0 +1,4 @@
+*
+!dist/**
+!lib/**
+lib/umd-wrapper.js
