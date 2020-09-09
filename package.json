@@ -1,6 +1,6 @@
 {
   "name": "c-promise2",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Cancelable promise chain with progress capturing and other extra features",
   "author": {
     "name": "Dmitriy Mozgovoy",
