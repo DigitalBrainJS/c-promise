@@ -11,8 +11,8 @@
     }
 
     #container {
-      width: 200px;
-      height: 200px;
+      width: 100px;
+      height: 100px;
       position: relative;
       float: right;
       font-size: 3rem;
@@ -21,7 +21,7 @@
 
     #log {
       display: inline-block;
-      width: 800px;
+      width: 500px;
       height: 300px;
       font-size: 14px;
       border: 1px black solid;
@@ -49,7 +49,7 @@
   <div id="log"></div>
   <div id="container"></div>
   <div id="controls">
-    <button onclick="start()">Start the Job</button>
+    <button onclick="start()">Start / restart the Job</button>
     <button onclick="abort()">Abort the Job</button>
   </div>
 </div>
@@ -99,7 +99,7 @@
             .then(async (data, scope) => {
                 scope.progress(0.01, 'response received... but let\'s pretend that we are doing other important operations')
 
-                for (let i = 0; i < 1; i += .05) {
+                for (let i = 0; i < 1; i += .1) {
                     scope.progress(i, [
                             "initializing...",
                             "searching started",
@@ -108,7 +108,7 @@
                             "almost done seriously!"
                         ][Math.floor(i * 5)]
                     );
-                    await CPromise.delay(500);
+                    await CPromise.delay(300);
                 }
                 return data;
             }).weight(10)

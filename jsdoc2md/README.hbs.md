@@ -1,4 +1,9 @@
-# SYNOPSIS
+![Travis (.com)](https://img.shields.io/travis/com/DigitalBrainJS/c-promise)
+[![Coverage Status](https://coveralls.io/repos/github/DigitalBrainJS/c-promise/badge.svg?branch=master)](https://coveralls.io/github/DigitalBrainJS/c-promise?branch=master)
+![npm](https://img.shields.io/npm/dy/c-promise)
+![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
+
+## SYNOPSIS
 
 CancelablePromise is an implementation of the Promise with some extra features
 like cancellation, timeouts and progress capturing. This is a subclass of the Promise provided
@@ -9,16 +14,16 @@ the chain with a special error subclass**.
 
 It supports cancellation of the whole chain, not just a single promise.
 The cancellation could be handled be the above standing chains, since this is just
-throwing a special error and invoking onCancel handlers and/or notify subscribers by the signals
+throwing a special error and invoking onCancel listeners and/or notify subscribers by the signals
 (using own AbortController implementation).
 
-#Why
+## Why
 
 You may face with a challenge when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
 
-#Features / Advantages
+## Features / Advantages
 - there are no any dependencies (except [native] Promise), browser support
 - cancellation sequence
 - supports cancellation of the whole chain - rejects the deepest pending promise in the chain
@@ -33,8 +38,22 @@ has lost its relevance to you.
 - static methods `all`, `race` support cancellation and will cancel all other pending promises after they resolved
 - the `catch` method supports error class filtering
 
-#Usage example
+## Usage example
+A font-end example of wrapping fetch to the CPromise and handling cancellation using signals (AbortController)
+````javascript
+    function cancelableFetch(url) {
+        return new CPromise((resolve, reject, {signal}) => {
+            fetch(url, {signal}).then(resolve, reject);
+        })
+    }
+    // url with 5s delay for response
+    const chain= cancelableFetch('https://run.mocky.io/v3/753aa609-65ae-4109-8f83-9cfe365290f0?mocky-delay=5s')
+        .then(console.log, console.warn);
 
+    setTimeout(()=> chain.cancel(), 1000);
+````
+![Browser playground with fetch](http://g.recordit.co/E6e97qRPoY.gif)
+Handling cancellation with `onCancel` listeners (see the live demo):
 ````javascript
 const timestamp= Date.now();
 
@@ -106,13 +125,13 @@ Is canceled: true
 
 Process finished with exit code 0
 ```
-#Playground
+## Playground
 - Clone https://github.com/DigitalBrainJS/c-promise.git repo
 - Run npm install to install dev-dependencies
 - Open playground/basic.js file with a basic example
 - Run this file using npm run playground or npm run playground:watch command to see the result
 
-#API Reference
+## API Reference
 
 {{#module name="CPromise"}}
 {{>body}}
@@ -121,7 +140,7 @@ Process finished with exit code 0
 {{>members~}}
 {{/module}}
 
-#License
+## License
 
 The MIT License Copyright (c) 2020 Dmitriy Mozgovoy robotshara@gmail.com
 
