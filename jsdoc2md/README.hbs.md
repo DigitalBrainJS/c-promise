@@ -84,14 +84,14 @@ A font-end example of wrapping fetch to the CPromise and handling cancellation u
             fetch(url, {signal}).then(resolve, reject);
         })
     }
-    // url with 5s delay for response
+    // URL with 5 seconds delay to respond
     const chain= cancelableFetch('https://run.mocky.io/v3/753aa609-65ae-4109-8f83-9cfe365290f0?mocky-delay=5s')
         .then(console.log, console.warn);
 
     setTimeout(()=> chain.cancel(), 1000);
 ````
 
-Handling cancellation with `onCancel` listeners (see the live demo in the git repo):
+Handling cancellation with `onCancel` listeners (see the [live demo](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)):
 ````javascript
 import CPromise from "c-promise";
 
