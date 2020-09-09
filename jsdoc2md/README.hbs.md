@@ -3,7 +3,7 @@
 ![npm](https://img.shields.io/npm/dy/c-promise)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
-## SYNOPSIS
+## SYNOPSIS :sparkles:
 
 CPromise is a subclass of the Promise provided by the environment with some extra features
 like cancellation, timeouts and progress capturing. 
@@ -17,15 +17,14 @@ throwing a special error and invoking onCancel listeners and/or notify subscribe
 using AbortController (built-in implementation or native if it's available).
 
 This lib can be used on the backend and frontend sides. 
-The package consists pre-built bundles with umd, cjs, mjs versions.
 
-## Why
+## Why :question:
 
 You may face with a challenge when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
 
-## Installation
+## Installation :hammer:
 
 Install for node.js using npm/yarn:
 
@@ -36,6 +35,8 @@ $ npm install c-promise2
 ``` bash
 $ yarn add c-promise2
 ```
+
+The package consists pre-built bundles with umd, cjs, mjs versions which can be found in the `./dist/` directory
 
 #### CDN
 - [development UMD version with ](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js) 
@@ -63,7 +64,7 @@ $ yarn add c-promise2
 
 ## Live Example
 
-[Live browser example](https://jsfiddle.net/DigitalBrain/g0dv5L8c/3/)
+[Live browser example](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
 
 [Live nodejs example](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
 
