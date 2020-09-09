@@ -30,10 +30,14 @@ echoChainState();
 
 chain
     .then((value) => {
-        log(`Done with value '${value}'`);
-    }, (err) => {
-        log(`cancelled with error : ${err} on '${err.scope.label()}'`); // [1006ms] CanceledError: canceled
+        log(`Done with value '${value}'`); // [1006ms] CanceledError: canceled
     }).label('final')
+    .catch((err)=>{
+        log(`cancelled with error : ${err} on '${err.scope.label()}'`); // [1006ms] CanceledError: canceled
+    }, CPromise.CanceledError)
+    .catch(err=>{
+        log(`Some other error occurred: ${err}`);
+    })
     .finally(() => {
         echoChainState();
     });

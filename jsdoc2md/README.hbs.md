@@ -30,12 +30,21 @@ has lost its relevance to you.
 Install for node.js using npm/yarn:
 
 ``` bash
-$ npm install c-promise
+$ npm install c-promise2
 ```
 
 ``` bash
-$ yarn add c-promise
+$ yarn add c-promise2
 ```
+
+#### CDN
+- [development UMD version](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js)
+
+- [production UMD version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.umd.js)
+
+- [production CommonJS version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.cjs.js)
+
+- [production ESM version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.mjs)
 
 ## Features / Advantages
 - there are no any dependencies (except [native] Promise), browser support
@@ -53,6 +62,10 @@ $ yarn add c-promise
 - the `catch` method supports error class filtering
 
 ## Live Example
+
+[Live browser example](https://jsfiddle.net/DigitalBrain/g0dv5L8c/3/)
+
+[Live nodejs example](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
 
 <img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
 
@@ -111,10 +124,14 @@ echoChainState();
 
 chain
     .then((value) => {
-        log(`Done with value '${value}'`);
-    }, (err) => {
-        log(`cancelled with error : ${err} on '${err.scope.label()}'`); // [1006ms] CanceledError: canceled
+        log(`Done with value '${value}'`); // [1006ms] CanceledError: canceled
     }).label('final')
+    .catch((err)=>{
+        log(`cancelled with error : ${err} on '${err.scope.label()}'`); // [1006ms] CanceledError: canceled
+    }, CPromise.CanceledError)
+    .catch(err=>{
+        log(`Some other error occurred: ${err}`);
+    })
     .finally(() => {
         echoChainState();
     });
