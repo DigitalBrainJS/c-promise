@@ -38,9 +38,12 @@ $ yarn add c-promise2
 ```
 
 #### CDN
-- [development UMD version](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js)
+- [development UMD version with ](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js) 
+(additional error handling activated)
 
-- [production UMD version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.umd.js)
+- [production UMD version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.umd.js) (or [minified](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.umd.min.js) ~9KB)
+
+
 
 - [production CommonJS version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.cjs.js)
 
