@@ -54,7 +54,7 @@ $ yarn add c-promise
 
 ## Live Example
 
-![Browser playground with fetch](http://g.recordit.co/E6e97qRPoY.gif){:height="50%" width="50%"}
+<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
 
 ## Playground
 - Clone https://github.com/DigitalBrainJS/c-promise.git repo
