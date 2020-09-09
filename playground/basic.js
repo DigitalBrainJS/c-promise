@@ -1,4 +1,4 @@
-const {CancelablePromise}= require('../lib/index');
+const CPromise= require('../lib/c-promise');
 
 const timestamp= Date.now();
 
@@ -7,7 +7,7 @@ function log(message, ...values){
 }
 
 const delay= (ms, value)=>{
-    return new CancelablePromise((resolve, reject, {onCancel}) => {
+    return new CPromise((resolve, reject, {onCancel}) => {
         const timer = setTimeout(resolve, ms, value);
 
         onCancel(() => {

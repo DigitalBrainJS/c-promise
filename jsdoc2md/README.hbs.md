@@ -79,6 +79,8 @@ A font-end example of wrapping fetch to the CPromise and handling cancellation u
 
 Handling cancellation with `onCancel` listeners (see the live demo in the git repo):
 ````javascript
+import CPromise from "c-promise";
+
 const timestamp= Date.now();
 
 function log(message, ...values){
@@ -86,7 +88,7 @@ function log(message, ...values){
 }
 
 const delay= (ms, value)=>{
-    return new CancelablePromise((resolve, reject, {onCancel}) => {
+    return new CPromise((resolve, reject, {onCancel}) => {
     const timer = setTimeout(resolve, ms, value);
     
         onCancel(() => {
