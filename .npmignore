@@ -1,4 +1,3 @@
 *
 !dist/**
-
-
+!dev/index.js

@@ -1,6 +1,6 @@
 ![Travis (.com)](https://img.shields.io/travis/com/DigitalBrainJS/c-promise)
 [![Coverage Status](https://coveralls.io/repos/github/DigitalBrainJS/c-promise/badge.svg?branch=master)](https://coveralls.io/github/DigitalBrainJS/c-promise?branch=master)
-![npm](https://img.shields.io/npm/dy/c-promise)
+![npm](https://img.shields.io/npm/dm/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
 ## SYNOPSIS :sparkles:
@@ -13,8 +13,8 @@ the chain with a special error subclass**.
 
 It supports cancellation of the whole chain, not just a single promise.
 The cancellation could be handled by the above standing chains, since it's just
-throwing a special error and invoking onCancel listeners and/or notify subscribers by the signals
-using AbortController (built-in implementation or native if it's available).
+throwing a special error and invoking `onCancel` listeners and/or notify subscribers by the signals
+using `AbortController` (built-in implementation or native if it's available).
 
 This lib can be used on the backend and frontend sides. 
 
@@ -26,17 +26,27 @@ has lost its relevance to you.
 
 ## Installation :hammer:
 
-Install for node.js using npm/yarn:
+- Install for node.js using npm/yarn:
 
-``` bash
+```bash
 $ npm install c-promise2
 ```
 
-``` bash
+```bash
 $ yarn add c-promise2
 ```
 
 The package consists pre-built bundles with umd, cjs, mjs versions which can be found in the `./dist/` directory
+
+- Import the library:
+
+````javascript
+import CPromise from "c-promise2";
+// const CPromise = require("c-promise2"); // using require
+// import CPromise from "c-promise2/dev"; // development version
+    
+CPromise.delay(1000, 'It works!').then(str => console.log('Done', str));
+````
 
 #### CDN
 - [development UMD version with ](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js) 
