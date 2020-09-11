@@ -11,18 +11,57 @@ like cancellation, timeouts and progress capturing.
 In terms of the library **the cancellation means rejection of the deepest promise in
 the chain with a special error subclass**.
 
-It supports cancellation of the whole chain, not just a single promise.
-The cancellation could be handled by the above standing chains, since it's just
-throwing a special error and invoking `onCancel` listeners and/or notify subscribers by the signals
-using `AbortController` (built-in implementation or native if it's available).
+**It supports cancellation of the whole chain, not just a single promise**.
 
-This lib can be used on the backend and frontend sides. 
+This lib can be used for both backend and frontend development, no any dependencies required.
 
 ## Why :question:
 
 You may face with a challenge when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
+
+## How it works
+
+The deepest pending CPromise in the chain will be rejected will a `CanceledError`, 
+then that chain and each above standing chain will emit `cancel` event. This event will be handled by
+callbacks attached by `onCancel(cb)` method and propagate with signal from `AbortController`.
+These api can be used simultaneously. The `cancel([reason])` method is synchronous and can be called any time.
+If cancellation failed (the chain has been already fulfilled) it will return `false`.
+
+## Features / Advantages
+- there are no any dependencies (except [native] Promise)
+- browser support
+- :fire: supports cancellation of the whole chain - rejects the deepest pending promise in the chain
+- supports onCancel event handler to abort some internal work (clear timers, close requests etc.)
+- supports built-in signal interface for API that supports it (like fetch method)
+- proper handling of `CanceledError` errors manually thrown inside the chain
+- :fire: progress capturing with result scaling to handle progress of the whole chain (including nested promise chains), useful for long-term operations
+- ability to install the `weight` for each promise in the chain
+- ability to attach meta info on each setting of the progress
+- the `delay` method to return promise that will be resolved with the value after timeout
+- static methods `all`, `race` support cancellation and will cancel all other pending promises after they resolved
+- the `catch` method supports error class filtering
+
+## Live Example
+
+This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
+````javascript
+function fetchWithTimeout(url, timeout) {
+   return new CPromise((resolve, reject, {signal}) => {
+      fetch(url, {signal}).then(resolve, reject)
+   }).timeout(timeout)
+}
+
+const chain= fetchWithTimeout('http://localhost/', 5000);
+// chain.cancel();
+````
+
+[Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
+
+[Live nodejs example (jsfiddle.net)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
+
+<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
 
 ## Installation :hammer:
 
@@ -57,28 +96,6 @@ CPromise.delay(1000, 'It works!').then(str => console.log('Done', str));
 - [production CommonJS version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.cjs.js)
 
 - [production ESM version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.mjs)
-
-## Features / Advantages
-- there are no any dependencies (except [native] Promise)
-- browser support
-- :fire: supports cancellation of the whole chain - rejects the deepest pending promise in the chain
-- supports onCancel event handler to abort some internal work (clear timers, close requests etc.)
-- supports built-in signal interface for API that supports it (like fetch method)
-- proper handling of `CanceledError` errors manually thrown inside the chain
-- :fire: progress capturing with result scaling to handle progress of the whole chain (including nested promise chains), useful for long-term operations
-- ability to install the `weight` for each promise in the chain
-- ability to attach meta info on each setting of the progress
-- the `delay` method to return promise that will be resolved with the value after timeout
-- static methods `all`, `race` support cancellation and will cancel all other pending promises after they resolved
-- the `catch` method supports error class filtering
-
-## Live Example
-
-[Live browser example](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
-
-[Live nodejs example](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
-
-<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
 
 ## Playground
 - Clone https://github.com/DigitalBrainJS/c-promise.git repo

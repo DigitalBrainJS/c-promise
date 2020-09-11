@@ -27,8 +27,8 @@
     "build": "rollup -c",
     "build:watch": "nodemon --watch lib/ --exec \\\"npm run build\\\"",
     "dev": "cross-env NODE_ENV=development \"npm run test:watch\"",
-    "playground": "node playground/basic.js || true",
-    "playground:watch": "nodemon --watch ./playground --watch lib/ --exec \\\"npm run build && npm run playground\\\"",
+    "playground": "node playground/generator.js || true",
+    "playground:watch": "nodemon --watch ./playground --watch lib/ --exec \\\"npm run playground\\\"",
     "docs": "jsdoc2md -t jsdoc2md/README.hbs.md lib/c-promise.js > README.md",
     "docs:namepaths": "jsdoc2md ./lib/c-promise.js --namepaths"
   },
