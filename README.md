@@ -21,6 +21,32 @@ You may face with a challenge when you need to cancel some long-term asynchronou
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
 
+## Live Example
+
+This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
+````javascript
+function fetchWithTimeout(url, options) {
+   const {timeout, ...fetchOptions}= options;
+   return new CPromise((resolve, reject, {signal}) => {
+      fetch(url, {...fetchOptions, signal}).then(resolve, reject)
+   }, timeout)
+}
+
+const chain= fetchWithTimeout('http://localhost/', {timeout: 5000})
+      .then(response => response.json())
+      .then(data => console.log(`Done: `, data), err => console.log(`Error: `, err))
+
+// setTimeout(()=> chain.cancel(), 1000); 
+// you able to call cancel() at any time to cancel the entire chain at any stage
+// the related network request will also be aborted
+````
+
+[Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
+
+[Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
+
+<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
+
 ## How it works
 
 The deepest pending CPromise in the chain will be rejected will a `CanceledError`, 
@@ -42,26 +68,6 @@ If cancellation failed (the chain has been already fulfilled) it will return `fa
 - the `delay` method to return promise that will be resolved with the value after timeout
 - static methods `all`, `race` support cancellation and will cancel all other pending promises after they resolved
 - the `catch` method supports error class filtering
-
-## Live Example
-
-This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
-````javascript
-function fetchWithTimeout(url, timeout) {
-   return new CPromise((resolve, reject, {signal}) => {
-      fetch(url, {signal}).then(resolve, reject)
-   }).timeout(timeout)
-}
-
-const chain= fetchWithTimeout('http://localhost/', 5000);
-// chain.cancel();
-````
-
-[Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
-
-[Live nodejs example (jsfiddle.net)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
-
-<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
 
 ## Installation :hammer:
 
@@ -104,20 +110,6 @@ CPromise.delay(1000, 'It works!').then(str => console.log('Done', str));
 - Run this file using npm run playground or npm run playground:watch command to see the result
 
 ## Usage example
-A font-end example of wrapping fetch to the CPromise and handling cancellation using signals (AbortController)
-````javascript
-    function cancelableFetch(url) {
-        return new CPromise((resolve, reject, {signal}) => {
-            fetch(url, {signal}).then(resolve, reject);
-        })
-    }
-    // URL with 5 seconds delay to respond
-    const chain= cancelableFetch('https://run.mocky.io/v3/753aa609-65ae-4109-8f83-9cfe365290f0?mocky-delay=5s')
-        .then(console.log, console.warn);
-
-    setTimeout(()=> chain.cancel(), 1000);
-````
-
 Handling cancellation with `onCancel` listeners (see the [live demo](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)):
 ````javascript
 import CPromise from "c-promise";
