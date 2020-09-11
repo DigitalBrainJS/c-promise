@@ -1,6 +1,7 @@
 ![Travis (.com)](https://img.shields.io/travis/com/DigitalBrainJS/c-promise)
 [![Coverage Status](https://coveralls.io/repos/github/DigitalBrainJS/c-promise/badge.svg?branch=master)](https://coveralls.io/github/DigitalBrainJS/c-promise?branch=master)
 ![npm](https://img.shields.io/npm/dm/c-promise2)
+![npm bundle size](https://img.shields.io/bundlephobia/min/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
 ## SYNOPSIS :sparkles:
@@ -47,13 +48,14 @@ If cancellation failed (the chain has been already fulfilled) it will return `fa
 
 This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
 ````javascript
-function fetchWithTimeout(url, timeout) {
-   return new CPromise((resolve, reject, {signal}) => {
-      fetch(url, {signal}).then(resolve, reject)
-   }).timeout(timeout)
+function fetchWithTimeout(url, options) {
+    const {timeout, ...fetchOptions}= options;
+    return new CPromise((resolve, reject, {signal}) => {
+        fetch(url, {...fetchOptions, signal}).then(resolve, reject)
+    }, timeout)
 }
 
-const chain= fetchWithTimeout('http://localhost/', 5000);
+const chain= fetchWithTimeout('http://localhost/', {timeout: 5000});
 // chain.cancel();
 ````
 
@@ -104,20 +106,6 @@ CPromise.delay(1000, 'It works!').then(str => console.log('Done', str));
 - Run this file using npm run playground or npm run playground:watch command to see the result
 
 ## Usage example
-A font-end example of wrapping fetch to the CPromise and handling cancellation using signals (AbortController)
-````javascript
-    function cancelableFetch(url) {
-        return new CPromise((resolve, reject, {signal}) => {
-            fetch(url, {signal}).then(resolve, reject);
-        })
-    }
-    // URL with 5 seconds delay to respond
-    const chain= cancelableFetch('https://run.mocky.io/v3/753aa609-65ae-4109-8f83-9cfe365290f0?mocky-delay=5s')
-        .then(console.log, console.warn);
-
-    setTimeout(()=> chain.cancel(), 1000);
-````
-
 Handling cancellation with `onCancel` listeners (see the [live demo](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)):
 ````javascript
 import CPromise from "c-promise";

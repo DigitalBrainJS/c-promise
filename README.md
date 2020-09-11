@@ -1,6 +1,7 @@
 ![Travis (.com)](https://img.shields.io/travis/com/DigitalBrainJS/c-promise)
 [![Coverage Status](https://coveralls.io/repos/github/DigitalBrainJS/c-promise/badge.svg?branch=master)](https://coveralls.io/github/DigitalBrainJS/c-promise?branch=master)
 ![npm](https://img.shields.io/npm/dm/c-promise2)
+![npm bundle size](https://img.shields.io/bundlephobia/min/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
 ## SYNOPSIS :sparkles:
@@ -47,13 +48,14 @@ If cancellation failed (the chain has been already fulfilled) it will return `fa
 
 This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
 ````javascript
-function fetchWithTimeout(url, timeout) {
-   return new CPromise((resolve, reject, {signal}) => {
-      fetch(url, {signal}).then(resolve, reject)
-   }).timeout(timeout)
+function fetchWithTimeout(url, options) {
+    const {timeout, ...fetchOptions}= options;
+    return new CPromise((resolve, reject, {signal}) => {
+        fetch(url, {...fetchOptions, signal}).then(resolve, reject)
+    }, timeout)
 }
 
-const chain= fetchWithTimeout('http://localhost/', 5000);
+const chain= fetchWithTimeout('http://localhost/', {timeout: 5000});
 // chain.cancel();
 ````
 
@@ -104,20 +106,6 @@ CPromise.delay(1000, 'It works!').then(str => console.log('Done', str));
 - Run this file using npm run playground or npm run playground:watch command to see the result
 
 ## Usage example
-A font-end example of wrapping fetch to the CPromise and handling cancellation using signals (AbortController)
-````javascript
-    function cancelableFetch(url) {
-        return new CPromise((resolve, reject, {signal}) => {
-            fetch(url, {signal}).then(resolve, reject);
-        })
-    }
-    // URL with 5 seconds delay to respond
-    const chain= cancelableFetch('https://run.mocky.io/v3/753aa609-65ae-4109-8f83-9cfe365290f0?mocky-delay=5s')
-        .then(console.log, console.warn);
-
-    setTimeout(()=> chain.cancel(), 1000);
-````
-
 Handling cancellation with `onCancel` listeners (see the [live demo](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)):
 ````javascript
 import CPromise from "c-promise";
@@ -210,7 +198,7 @@ Cancellable Promise with extra features
             * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
             * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
             * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel)
-            * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
+            * [.progress([value], [data], options)](#module_CPromise..CPromiseScope+progress)
             * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
             * [.captureProgress()](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
             * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
@@ -262,7 +250,7 @@ Scope for CPromises instances
         * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
         * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
         * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel)
-        * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
+        * [.progress([value], [data], options)](#module_CPromise..CPromiseScope+progress)
         * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
         * [.captureProgress()](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
         * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
@@ -319,7 +307,7 @@ registers the listener for cancel event
 
 <a name="module_CPromise..CPromiseScope+progress"></a>
 
-#### cPromiseScope.progress([value], [data])
+#### cPromiseScope.progress([value], [data], options)
 Set promise progress
 
 **Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
@@ -328,6 +316,8 @@ Set promise progress
 | --- | --- | --- |
 | [value] | <code>Number</code> | a number between [0, 1] |
 | [data] | <code>\*</code> | any data to send for progress event listeners |
+| options | <code>Object</code> |  |
+| options.debounce | <code>Number</code> | min interval in ms to emit the progress |
 
 <a name="module_CPromise..CPromiseScope+propagate"></a>
 

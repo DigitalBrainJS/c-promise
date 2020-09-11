@@ -80,7 +80,8 @@
     "aborting",
     "close",
     "closable",
-    "task"
+    "task",
+    "p-cancelable"
   ],
   "license": "MIT",
   "devDependencies": {

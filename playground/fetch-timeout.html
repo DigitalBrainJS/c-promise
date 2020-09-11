@@ -22,7 +22,7 @@
     function fetchWithTimeout(url, timeout) {
         return new CPromise((resolve, reject, {signal}) => {
             fetch(url, {signal}).then(resolve, reject)
-        }).timeout(timeout)
+        }, timeout)
     }
 
     function request(timeout) {
