@@ -1,6 +1,8 @@
 ![Travis (.com)](https://img.shields.io/travis/com/DigitalBrainJS/c-promise)
 [![Coverage Status](https://coveralls.io/repos/github/DigitalBrainJS/c-promise/badge.svg?branch=master)](https://coveralls.io/github/DigitalBrainJS/c-promise?branch=master)
 ![npm](https://img.shields.io/npm/dm/c-promise2)
+![npm bundle size](https://img.shields.io/bundlephobia/min/c-promise2)
+![npm bundle size](https://img.shields.io/bundlephobia/minzip/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
 ## SYNOPSIS :sparkles:
