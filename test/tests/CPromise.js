@@ -1,8 +1,8 @@
 const assert= require('assert');
 const CPromise = require( '../../lib/c-promise');
+const {CanceledError}= CPromise;
 
 const delay = (ms, value, options) => new CPromise(resolve => setTimeout(() => resolve(value), ms), options);
-
 
 module.exports = {
     constructor: {
@@ -142,5 +142,22 @@ module.exports = {
                 assert.ok(err instanceof CPromise.CanceledError);
             })
         }
-   }
+   },
+
+    'timeout': {
+        'should cancel the chain with timeout reason': async function () {
+            const p = new CPromise(function (resolve, reject) {
+                setTimeout(resolve, 1000);
+            });
+
+            return p
+                .timeout(100)
+                .then(() => {
+                    assert.fail('chain was not cancelled');
+                }, err => {
+                    assert.ok(err instanceof CanceledError);
+                    assert.equal(err.message, 'timeout');
+                })
+        }
+    }
 };
