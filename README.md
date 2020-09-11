@@ -238,6 +238,7 @@ Cancellable Promise with extra features
             * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
             * [.all(thenables)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
             * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
+            * [.from(thing)](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
     * [~PromiseScopeOptions](#module_CPromise..PromiseScopeOptions) : <code>Object</code>
     * [~onFulfilled](#module_CPromise..onFulfilled) : <code>function</code>
     * [~onRejected](#module_CPromise..onRejected) : <code>function</code>
@@ -470,6 +471,7 @@ CPromise class
         * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
         * [.all(thenables)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
+        * [.from(thing)](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
 
 <a name="new_module_CPromise..CPromise_new"></a>
 
@@ -590,6 +592,17 @@ returns a promise that fulfills or rejects as soon as one of the promises in an 
 | Param | Type |
 | --- | --- |
 | thenables | <code>Iterable</code> | 
+
+<a name="module_CPromise..CPromise.from"></a>
+
+#### CPromise.from(thing) ⇒ <code>CPromise</code>
+Converts thing to CPromise. If thing if a thenable with cancel method it will be called on cancel event
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| thing | <code>\*</code> | 
 
 <a name="module_CPromise..PromiseScopeOptions"></a>
 
