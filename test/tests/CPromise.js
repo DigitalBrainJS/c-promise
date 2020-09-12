@@ -159,5 +159,28 @@ module.exports = {
                     assert.equal(err.message, 'timeout');
                 })
         }
+    },
+
+    'from': {
+        'should convert thing to a CPromise instance': async function(){
+            let isCanceled= false;
+            const thenable= {
+                then(){},
+                cancel(){
+                    isCanceled= true;
+                }
+            }
+
+            const chain= CPromise.from(thenable).then(()=>{
+                assert.fail('not canceled');
+            }, (err)=>{
+                assert.ok(err instanceof CanceledError);
+                assert.ok(isCanceled)
+            });
+
+            chain.cancel();
+
+            return chain;
+        }
     }
 };

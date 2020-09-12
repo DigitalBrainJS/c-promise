@@ -1,7 +1,7 @@
 ![Travis (.com)](https://img.shields.io/travis/com/DigitalBrainJS/c-promise)
 [![Coverage Status](https://coveralls.io/repos/github/DigitalBrainJS/c-promise/badge.svg?branch=master)](https://coveralls.io/github/DigitalBrainJS/c-promise?branch=master)
 ![npm](https://img.shields.io/npm/dm/c-promise2)
-![npm bundle size](https://img.shields.io/bundlephobia/min/c-promise2)
+![npm bundle size](https://img.shields.io/bundlephobia/minzip/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
 ## SYNOPSIS :sparkles:
@@ -21,6 +21,32 @@ This lib can be used for both backend and frontend development, no any dependenc
 You may face with a challenge when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
+
+## Live Example
+
+This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
+````javascript
+function fetchWithTimeout(url, options) {
+   const {timeout, ...fetchOptions}= options;
+   return new CPromise((resolve, reject, {signal}) => {
+      fetch(url, {...fetchOptions, signal}).then(resolve, reject)
+   }, timeout)
+}
+
+const chain= fetchWithTimeout('http://localhost/', {timeout: 5000})
+      .then(response => response.json())
+      .then(data => console.log(`Done: `, data), err => console.log(`Error: `, err))
+
+// setTimeout(()=> chain.cancel(), 1000); 
+// you able to call cancel() at any time to cancel the entire chain at any stage
+// the related network request will also be aborted
+````
+
+[Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
+
+[Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
+
+<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
 
 ## How it works
 
@@ -43,27 +69,6 @@ If cancellation failed (the chain has been already fulfilled) it will return `fa
 - the `delay` method to return promise that will be resolved with the value after timeout
 - static methods `all`, `race` support cancellation and will cancel all other pending promises after they resolved
 - the `catch` method supports error class filtering
-
-## Live Example
-
-This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
-````javascript
-function fetchWithTimeout(url, options) {
-    const {timeout, ...fetchOptions}= options;
-    return new CPromise((resolve, reject, {signal}) => {
-        fetch(url, {...fetchOptions, signal}).then(resolve, reject)
-    }, timeout)
-}
-
-const chain= fetchWithTimeout('http://localhost/', {timeout: 5000});
-// chain.cancel();
-````
-
-[Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
-
-[Live nodejs example (jsfiddle.net)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
-
-<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
 
 ## Installation :hammer:
 
@@ -198,7 +203,7 @@ Cancellable Promise with extra features
             * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
             * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
             * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel)
-            * [.progress([value], [data], options)](#module_CPromise..CPromiseScope+progress)
+            * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
             * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
             * [.captureProgress()](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
             * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
@@ -226,6 +231,7 @@ Cancellable Promise with extra features
             * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
             * [.all(thenables)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
             * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
+            * [.from(thing)](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
     * [~PromiseScopeOptions](#module_CPromise..PromiseScopeOptions) : <code>Object</code>
     * [~onFulfilled](#module_CPromise..onFulfilled) : <code>function</code>
     * [~onRejected](#module_CPromise..onRejected) : <code>function</code>
@@ -250,7 +256,7 @@ Scope for CPromises instances
         * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
         * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
         * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel)
-        * [.progress([value], [data], options)](#module_CPromise..CPromiseScope+progress)
+        * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
         * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
         * [.captureProgress()](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
         * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
@@ -307,7 +313,7 @@ registers the listener for cancel event
 
 <a name="module_CPromise..CPromiseScope+progress"></a>
 
-#### cPromiseScope.progress([value], [data], options)
+#### cPromiseScope.progress([value], [data])
 Set promise progress
 
 **Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
@@ -316,8 +322,6 @@ Set promise progress
 | --- | --- | --- |
 | [value] | <code>Number</code> | a number between [0, 1] |
 | [data] | <code>\*</code> | any data to send for progress event listeners |
-| options | <code>Object</code> |  |
-| options.debounce | <code>Number</code> | min interval in ms to emit the progress |
 
 <a name="module_CPromise..CPromiseScope+propagate"></a>
 
@@ -460,6 +464,7 @@ CPromise class
         * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
         * [.all(thenables)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
+        * [.from(thing)](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
 
 <a name="new_module_CPromise..CPromise_new"></a>
 
@@ -580,6 +585,17 @@ returns a promise that fulfills or rejects as soon as one of the promises in an 
 | Param | Type |
 | --- | --- |
 | thenables | <code>Iterable</code> | 
+
+<a name="module_CPromise..CPromise.from"></a>
+
+#### CPromise.from(thing) ⇒ <code>CPromise</code>
+Converts thing to CPromise. If thing if a thenable with cancel method it will be called on cancel event
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| thing | <code>\*</code> | 
 
 <a name="module_CPromise..PromiseScopeOptions"></a>
 

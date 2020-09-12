@@ -1,6 +1,6 @@
 {
   "name": "c-promise2",
-  "version": "0.1.7",
+  "version": "0.1.9",
   "description": "Cancelable promise chain with progress capturing and other extra features",
   "author": {
     "name": "Dmitriy Mozgovoy",
@@ -31,6 +31,10 @@
     "playground:watch": "nodemon --watch ./playground --watch lib/ --exec \\\"npm run playground\\\"",
     "docs": "jsdoc2md -t jsdoc2md/README.hbs.md lib/c-promise.js > README.md",
     "docs:namepaths": "jsdoc2md ./lib/c-promise.js --namepaths"
+  },
+  "repository": "https://github.com/DigitalBrainJS/c-promise.git",
+  "bugs": {
+    "url": "https://github.com/DigitalBrainJS/c-promise/issues"
   },
   "nyc": {
     "lines": 60,
