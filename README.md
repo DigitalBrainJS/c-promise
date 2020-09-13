@@ -110,7 +110,7 @@ const chain= CPromise.from(function*(){
 
 //chain.cancel()
 ````
-Of course, if don't need to cancel, capture progress etc. you can use plain async functions with CPromise.
+Of course, if don't need cancellation, capture progress etc. you may use plain async functions with CPromise.
 #### CDN
 - [development UMD version with ](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js) 
 (additional error handling activated)
@@ -636,8 +636,7 @@ Returns a CPromise that will be resolved after specified timeout
 <a name="module_CPromise..CPromise.all"></a>
 
 #### CPromise.all(thenables) ⇒ <code>CPromise</code>
-Returns a single CPromise that resolves to an array of the results of the input promises.
-If one fails then other promises will be canceled immediately
+Returns a single CPromise that resolves to an array of the results of the input promises.If one fails then other promises will be canceled immediately
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
@@ -648,8 +647,7 @@ If one fails then other promises will be canceled immediately
 <a name="module_CPromise..CPromise.race"></a>
 
 #### CPromise.race(thenables) ⇒ <code>CPromise</code>
-returns a promise that fulfills or rejects as soon as one of the promises in an iterable fulfills or rejects,
-with the value or reason from that promise. Other pending promises will be canceled immediately
+returns a promise that fulfills or rejects as soon as one of the promises in an iterable fulfills or rejects,with the value or reason from that promise. Other pending promises will be canceled immediately
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
@@ -727,8 +725,7 @@ Converts thing to CPromise. If thing if a thenable with cancel method it will be
 <a name="module_CPromise..CPromiseOptions"></a>
 
 ### CPromise~CPromiseOptions : <code>Object</code> \| <code>String</code> \| <code>Number</code>
-If value is a number it will be considered as the value for timeout option
-If value is a string it will be considered as label
+If value is a number it will be considered as the value for timeout optionIf value is a string it will be considered as label
 
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 

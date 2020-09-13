@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Fetch timeout</title>
+  <script src="../dist/c-promise.umd.js"></script>
+</head>
+<body>
+<p>Make request to endpoint with 10s+ latency</p>
+<p>Open your console to see the log</p>
+<p>Note that the related request does abort when you undo the promise chain (see the network tab in developer tools)</p>
+<button onclick="request(0)">Request url</button>
+<button onclick="request(5000)">Request url with timeout 5s</button>
+<button onclick="abort()">Abort</button>
+<script>
+    let fetchChain;
+    const url = "https://run.mocky.io/v3/753aa609-65ae-4109-8f83-9cfe365290f0?mocky-delay=10s";
+    let timestamp= Date.now();
+    const log= (message, ...values)=> console.log(`[${Date.now()-timestamp}ms] ${message}`, ...values);
+    const updateTimeStamp= ()=> (timestamp= Date.now());
+
+    function fetchWithTimeout(url, options= {}) {
+        const {timeout, ...fetchOptions}= options;
+        return new CPromise((resolve, reject, {signal}) => {
+            fetch(url, {...fetchOptions, signal}).then(resolve, reject)
+        }, timeout)
+    }
+
+    function request(timeout) {
+        abort();
+        updateTimeStamp();
+        log('Fetch started');
+        fetchChain = fetchWithTimeout(url, {timeout})
+            .then(response => response.json())
+            .then(data => {
+                    log(`Done: `, data);
+                },
+                err => {
+                    log('Error:', err);
+                });
+    }
+
+    function abort() {
+        fetchChain && fetchChain.cancel();
+    }
+</script>
+</body>
+</html>
