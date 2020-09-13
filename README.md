@@ -46,15 +46,15 @@ const chain= fetchWithTimeout('http://localhost/', {timeout: 5000})
 
 [Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
 
-[Using generators as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+[Using generator as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
 
 <img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
 
 ## How it works
 
 The deepest pending CPromise in the chain will be rejected will a `CanceledError`, 
-then that chain and each above standing chain will emit `cancel` event. This event will be handled by
-callbacks attached by `onCancel(cb)` method and propagate with signal from `AbortController`.
+then if the error was not caught by the user code that chain and each above standing chain emit `cancel` event. This event will be handled by
+callbacks attached by `onCancel(cb)` method and/or propagate with signal from `AbortController`.
 These api can be used simultaneously. The `cancel([reason])` method is synchronous and can be called any time.
 If cancellation failed (the chain has been already fulfilled) it will return `false`.
 
