@@ -34,7 +34,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run docs && git add ."
+      "pre-commit": "npm run docs ; git add ."
     }
   },
   "repository": "https://github.com/DigitalBrainJS/c-promise.git",
