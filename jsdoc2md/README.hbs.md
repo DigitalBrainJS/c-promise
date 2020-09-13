@@ -26,7 +26,7 @@ has lost its relevance to you.
 
 This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
 ````javascript
-function fetchWithTimeout(url, options) {
+function fetchWithTimeout(url, options= {}) {
    const {timeout, ...fetchOptions}= options;
    return new CPromise((resolve, reject, {signal}) => {
       fetch(url, {...fetchOptions, signal}).then(resolve, reject)
@@ -46,6 +46,8 @@ const chain= fetchWithTimeout('http://localhost/', {timeout: 5000})
 
 [Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
 
+[Using generators as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+
 <img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
 
 ## How it works
@@ -62,12 +64,14 @@ If cancellation failed (the chain has been already fulfilled) it will return `fa
 - :fire: supports cancellation of the whole chain - rejects the deepest pending promise in the chain
 - supports onCancel event handler to abort some internal work (clear timers, close requests etc.)
 - supports built-in signal interface for API that supports it (like fetch method)
+- :fire: supports generator to CPromise resolving (something similar like [co](https://www.npmjs.com/package/co) library does);
 - proper handling of `CanceledError` errors manually thrown inside the chain
 - :fire: progress capturing with result scaling to handle progress of the whole chain (including nested promise chains), useful for long-term operations
 - ability to install the `weight` for each promise in the chain
 - ability to attach meta info on each setting of the progress
 - the `delay` method to return promise that will be resolved with the value after timeout
-- static methods `all`, `race` support cancellation and will cancel all other pending promises after they resolved
+- static methods `all`, `race` support cancellation and will cancel all other pending
+ promises after the result promise settled
 - the `catch` method supports error class filtering
 
 ## Installation :hammer:
@@ -91,9 +95,22 @@ import CPromise from "c-promise2";
 // const CPromise = require("c-promise2"); // using require
 // import CPromise from "c-promise2/dev"; // development version
     
-CPromise.delay(1000, 'It works!').then(str => console.log('Done', str));
-````
+const chain= CPromise.delay(1000, 'It works!').then(message => console.log('Done', message));
 
+//chain.cancel();
+````
+You can use generators as a replacement for async:
+````javascript
+import CPromise from "c-promise2";
+
+const chain= CPromise.from(function*(){
+    yield 1000; // wait for 1000ms- converts to CPromise.delay(1000)
+    return "It works!";
+}).then(message=> console.log(`Done: ${message}`));
+
+//chain.cancel()
+````
+Of course, if don't need cancellation, capture progress etc. you may use plain async functions with CPromise.
 #### CDN
 - [development UMD version with ](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js) 
 (additional error handling activated)
@@ -189,6 +206,21 @@ Is canceled: true
 
 Process finished with exit code 0
 ```
+
+## Using Generators
+See the [live demo](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+````javascript
+import CPromise from "c-promise2";
+
+const promise= CPromise.from(function*(x, y, z){
+    this.captureProgress(4); //optionally set the expected total progress score of the chain
+    yield 1000; // wait for 1000ms- converts to CPromise.delay(1000)
+    yield [1000, 1500] // resolve chains using CPromise.all([...chains]);
+    yield [[1000, 1500]] // resolve chains using CPromise.race([...chains]);
+    const status= yield new Promise(resolve=> resolve(true)); // any thenable object will be resolved
+    return "It works!"; //return statement supports resolving only thenable objects ot plain values
+}, [1, 2, 3]).then(message=> console.log(`Done: ${message}`));
+````
 
 ## API Reference
 

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Generator</title>
+  <script src="../dist/c-promise.umd.js"></script>
+</head>
+<body>
+  <p>See your console</p>
+  <script>
+      const timestamp= Date.now();
+
+      function log(message, ...values){
+          console.log(`[${Date.now()- timestamp}ms] ${message}`, ...values);
+      }
+
+      function fetchWithTimeout(url, options= {}) {
+          const {timeout, ...fetchOptions}= options;
+          return new CPromise((resolve, reject, {signal}) => {
+              fetch(url, {...fetchOptions, signal}).then(resolve, reject)
+          }, timeout)
+      }
+
+      const chain= CPromise.from(function*(url){
+          this.captureProgress(12); // max chains weight to expect
+          const response= yield fetchWithTimeout(url); // fetch movie info
+          const json= yield response.json();
+          console.log(`Json: `, json);
+          for(let i=0; i<10; i++){
+              yield i * 100; //wait (i * 100)ms
+              console.log(`Iteration ${i}`);
+          }
+          return json.name;
+      }, ["https://run.mocky.io/v3/753aa609-65ae-4109-8f83-9cfe365290f0"])
+          .progress(value=> log(`Progress: ${value}`))
+          .then(value=> {
+              console.log(value);
+              log(`Done: ${value}`)
+          }, err=> log(`Error: ${err}`));
+
+      //chain.cancel();//
+
+  </script>
+</body>
+</html>

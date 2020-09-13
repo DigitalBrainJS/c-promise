@@ -32,6 +32,11 @@
     "docs": "jsdoc2md -t jsdoc2md/README.hbs.md lib/c-promise.js > README.md",
     "docs:namepaths": "jsdoc2md ./lib/c-promise.js --namepaths"
   },
+  "husky": {
+    "hooks": {
+      "pre-commit": "npm run docs"
+    }
+  },
   "repository": "https://github.com/DigitalBrainJS/c-promise.git",
   "bugs": {
     "url": "https://github.com/DigitalBrainJS/c-promise/issues"
@@ -78,6 +83,12 @@
     "signal",
     "await",
     "promises",
+    "generator",
+    "co",
+    "yield",
+    "race",
+    "delay",
+    "wait",
     "bluebird",
     "deferred",
     "cancellation",
@@ -94,6 +105,7 @@
     "@rollup/plugin-node-resolve": "^9.0.0",
     "coveralls": "^3.1.0",
     "cross-env": "^7.0.2",
+    "husky": "^4.3.0",
     "install": "^0.13.0",
     "jsdoc-to-markdown": "^6.0.1",
     "mocha": "^8.1.3",
