@@ -130,7 +130,7 @@ Of course, if don't need cancellation, capture progress etc. you may use plain a
 ## Usage example
 Handling cancellation with `onCancel` listeners (see the [live demo](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)):
 ````javascript
-import CPromise from "c-promise";
+import CPromise from "c-promise2";
 
 const timestamp= Date.now();
 
@@ -140,8 +140,7 @@ function log(message, ...values){
 
 const delay= (ms, value)=>{
     return new CPromise((resolve, reject, {onCancel}) => {
-    const timer = setTimeout(resolve, ms, value);
-    
+        const timer = setTimeout(resolve, ms, value);    
         onCancel(() => {
             log(`clearTimeout`);
             clearTimeout(timer);

@@ -130,7 +130,7 @@ Of course, if don't need cancellation, capture progress etc. you may use plain a
 ## Usage example
 Handling cancellation with `onCancel` listeners (see the [live demo](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)):
 ````javascript
-import CPromise from "c-promise";
+import CPromise from "c-promise2";
 
 const timestamp= Date.now();
 
@@ -140,8 +140,7 @@ function log(message, ...values){
 
 const delay= (ms, value)=>{
     return new CPromise((resolve, reject, {onCancel}) => {
-    const timer = setTimeout(resolve, ms, value);
-    
+        const timer = setTimeout(resolve, ms, value);    
         onCancel(() => {
             log(`clearTimeout`);
             clearTimeout(timer);
@@ -234,7 +233,7 @@ Cancellable Promise with extra features
             * [.signal](#module_CPromise..CPromiseScope+signal) : <code>AbortSignal</code>
             * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
             * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
-            * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel)
+            * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
             * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
             * [.debounceProgress(minTick)](#module_CPromise..CPromiseScope+debounceProgress) ⇒ <code>CPromiseScope</code>
             * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
@@ -266,10 +265,11 @@ Cancellable Promise with extra features
             * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
             * [.all(thenables)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
             * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
-            * [.from(thing)](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
+            * [.from(thing, [args])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code> \| <code>null</code>
     * [~PromiseScopeOptions](#module_CPromise..PromiseScopeOptions) : <code>Object</code>
     * [~onFulfilled](#module_CPromise..onFulfilled) : <code>function</code>
     * [~onRejected](#module_CPromise..onRejected) : <code>function</code>
+    * [~OnCancelListener](#module_CPromise..OnCancelListener) : <code>function</code>
     * [~CPromiseExecutorFn](#module_CPromise..CPromiseExecutorFn) : <code>function</code>
     * [~CPromiseExecutorFn](#module_CPromise..CPromiseExecutorFn) : <code>function</code>
     * [~CPromiseOptions](#module_CPromise..CPromiseOptions) : <code>Object</code> \| <code>String</code> \| <code>Number</code>
@@ -288,7 +288,7 @@ Scope for CPromises instances
         * [.signal](#module_CPromise..CPromiseScope+signal) : <code>AbortSignal</code>
         * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
         * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
-        * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel)
+        * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
         * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
         * [.debounceProgress(minTick)](#module_CPromise..CPromiseScope+debounceProgress) ⇒ <code>CPromiseScope</code>
         * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
@@ -336,14 +336,14 @@ indicates if the promise is pending
 **Kind**: instance property of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
 <a name="module_CPromise..CPromiseScope+onCancel"></a>
 
-#### cPromiseScope.onCancel(listener)
+#### cPromiseScope.onCancel(listener) ⇒ <code>CPromiseScope</code>
 registers the listener for cancel event
 
 **Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
 
 | Param | Type |
 | --- | --- |
-| listener | <code>function</code> | 
+| listener | <code>OnCancelListener</code> | 
 
 <a name="module_CPromise..CPromiseScope+progress"></a>
 
@@ -511,7 +511,7 @@ CPromise class
         * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
         * [.all(thenables)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
-        * [.from(thing)](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
+        * [.from(thing, [args])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code> \| <code>null</code>
 
 <a name="new_module_CPromise..CPromise_new"></a>
 
@@ -657,15 +657,20 @@ returns a promise that fulfills or rejects as soon as one of the promises in an 
 
 <a name="module_CPromise..CPromise.from"></a>
 
-#### CPromise.from(thing) ⇒ <code>CPromise</code>
-Converts thing to CPromise. If thing if a thenable with cancel method it will be called on cancel event
+#### CPromise.from(thing, [args]) ⇒ <code>CPromise</code> \| <code>null</code>
+Converts thing to CPromise.
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
 | Param | Type |
 | --- | --- |
 | thing | <code>\*</code> | 
+| [args] | <code>Array</code> | 
 
+**Example**  
+```js
+- CPromise instance returns as is- Thenable wraps into a new CPromise instance, if thenable has the `cancel` method it will be used for canceling- Generator function will be resolved to CPromise- Array will be resoled via CPromise.all, arrays with one element ([[1000]]) wll be resolved via CPromise.race- Number will be converted to CPromise.delay
+```
 <a name="module_CPromise..PromiseScopeOptions"></a>
 
 ### CPromise~PromiseScopeOptions : <code>Object</code>
@@ -699,6 +704,15 @@ Converts thing to CPromise. If thing if a thenable with cancel method it will be
 | --- | --- |
 | err |  | 
 | scope | <code>CPromiseScope</code> | 
+
+<a name="module_CPromise..OnCancelListener"></a>
+
+### CPromise~OnCancelListener : <code>function</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+
+| Param | Type |
+| --- | --- |
+| reason | <code>CanceledError</code> | 
 
 <a name="module_CPromise..CPromiseExecutorFn"></a>
 
