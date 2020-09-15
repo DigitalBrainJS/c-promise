@@ -39,16 +39,30 @@ const chain= fetchWithTimeout('http://localhost/', {timeout: 5000})
 
 // setTimeout(()=> chain.cancel(), 1000); 
 // you able to call cancel() at any time to cancel the entire chain at any stage
-// the related network request will also be aborted
+// Take into account the related network request will also be aborted
 ````
 
-[Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
-
-[Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
-
-[Using generator as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+- [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
 
 <img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
+
+- [Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
+
+- [Using generator as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+
+- [Wrapping axios request (runkit.com)](https://runkit.com/digitalbrainjs/cancel-axios)
+
+````javascript
+function cancelableGet(url){
+    return new CPromise((resolve, reject, {onCancel})=>{
+        axios.get(url, {
+            cancelToken: new axios.CancelToken(function executor(cancel) {
+                onCancel(cancel)
+            })
+        }).then(resolve, reject);
+    });
+}
+````
 
 ## How it works
 
@@ -235,7 +249,7 @@ Cancellable Promise with extra features
             * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
             * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
             * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
-            * [.debounceProgress(minTick)](#module_CPromise..CPromiseScope+debounceProgress) ⇒ <code>CPromiseScope</code>
+            * [.throttleProgress(minTick)](#module_CPromise..CPromiseScope+throttleProgress) ⇒ <code>CPromiseScope</code>
             * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
             * [.captureProgress()](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
             * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
@@ -253,7 +267,7 @@ Cancellable Promise with extra features
         * _instance_
             * [.isPending](#module_CPromise..CPromise+isPending) ⇒ <code>Boolean</code>
             * [.isCanceled](#module_CPromise..CPromise+isCanceled) ⇒ <code>Boolean</code>
-            * [.debounceProgress(minTick)](#module_CPromise..CPromise+debounceProgress) ⇒ <code>CPromise</code>
+            * [.throttleProgress(minTick)](#module_CPromise..CPromise+throttleProgress) ⇒ <code>CPromise</code>
             * [.progress(listener)](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
             * [.captureProgress()](#module_CPromise..CPromise+captureProgress) ⇒ <code>CPromise</code>
             * [.cancel(reason)](#module_CPromise..CPromise+cancel) ⇒ <code>Boolean</code>
@@ -290,7 +304,7 @@ Scope for CPromises instances
         * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
         * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
         * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
-        * [.debounceProgress(minTick)](#module_CPromise..CPromiseScope+debounceProgress) ⇒ <code>CPromiseScope</code>
+        * [.throttleProgress(minTick)](#module_CPromise..CPromiseScope+throttleProgress) ⇒ <code>CPromiseScope</code>
         * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
         * [.captureProgress()](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
         * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
@@ -357,9 +371,9 @@ Set promise progress
 | [value] | <code>Number</code> | a number between [0, 1] |
 | [data] | <code>\*</code> | any data to send for progress event listeners |
 
-<a name="module_CPromise..CPromiseScope+debounceProgress"></a>
+<a name="module_CPromise..CPromiseScope+throttleProgress"></a>
 
-#### cPromiseScope.debounceProgress(minTick) ⇒ <code>CPromiseScope</code>
+#### cPromiseScope.throttleProgress(minTick) ⇒ <code>CPromiseScope</code>
 Set the minimum progress tick
 
 **Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
@@ -499,7 +513,7 @@ CPromise class
     * _instance_
         * [.isPending](#module_CPromise..CPromise+isPending) ⇒ <code>Boolean</code>
         * [.isCanceled](#module_CPromise..CPromise+isCanceled) ⇒ <code>Boolean</code>
-        * [.debounceProgress(minTick)](#module_CPromise..CPromise+debounceProgress) ⇒ <code>CPromise</code>
+        * [.throttleProgress(minTick)](#module_CPromise..CPromise+throttleProgress) ⇒ <code>CPromise</code>
         * [.progress(listener)](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.captureProgress()](#module_CPromise..CPromise+captureProgress) ⇒ <code>CPromise</code>
         * [.cancel(reason)](#module_CPromise..CPromise+cancel) ⇒ <code>Boolean</code>
@@ -536,10 +550,10 @@ indicates if the promise is pending
 indicates if promise has been canceled
 
 **Kind**: instance property of [<code>CPromise</code>](#module_CPromise..CPromise)  
-<a name="module_CPromise..CPromise+debounceProgress"></a>
+<a name="module_CPromise..CPromise+throttleProgress"></a>
 
-#### cPromise.debounceProgress(minTick) ⇒ <code>CPromise</code>
-Debounce progress tick
+#### cPromise.throttleProgress(minTick) ⇒ <code>CPromise</code>
+Throttle progress tick
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
@@ -658,7 +672,7 @@ returns a promise that fulfills or rejects as soon as one of the promises in an 
 <a name="module_CPromise..CPromise.from"></a>
 
 #### CPromise.from(thing, [args]) ⇒ <code>CPromise</code> \| <code>null</code>
-Converts thing to CPromise.
+Converts thing to CPromise using the following rules:- CPromise instance returns as is- Objects with special method defined with key `Symbol.for('toCPromise')` will be converted using this method  The result will be cached for future calls- Thenable wraps into a new CPromise instance, if thenable has the `cancel` method it will be used for canceling- Generator function will be resolved to CPromise- Array will be resoled via `CPromise.all`, arrays with one element (e.g. `[[1000]]`) will be resolved via `CPromise.race`- Number will be converted to `CPromise.delay`This method returns null if the conversion failed.
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
@@ -667,10 +681,6 @@ Converts thing to CPromise.
 | thing | <code>\*</code> | 
 | [args] | <code>Array</code> | 
 
-**Example**  
-```js
-- CPromise instance returns as is- Thenable wraps into a new CPromise instance, if thenable has the `cancel` method it will be used for canceling- Generator function will be resolved to CPromise- Array will be resoled via CPromise.all, arrays with one element ([[1000]]) wll be resolved via CPromise.race- Number will be converted to CPromise.delay
-```
 <a name="module_CPromise..PromiseScopeOptions"></a>
 
 ### CPromise~PromiseScopeOptions : <code>Object</code>

@@ -42,7 +42,7 @@ function analyze() {
 }
 
 console.log(`Resolve generator with ${count} chains`);
-const chain = CPromise.from(generatorFn).debounceProgress(1500).progress(value => {
+const chain = CPromise.from(generatorFn).throttleProgress(1500).progress(value => {
     global.gc();
     pushStat();
     console.warn(`Progress [${value}] [${heapCycles}]`);

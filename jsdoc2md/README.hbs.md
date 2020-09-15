@@ -39,16 +39,30 @@ const chain= fetchWithTimeout('http://localhost/', {timeout: 5000})
 
 // setTimeout(()=> chain.cancel(), 1000); 
 // you able to call cancel() at any time to cancel the entire chain at any stage
-// the related network request will also be aborted
+// Take into account the related network request will also be aborted
 ````
 
-[Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
-
-[Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
-
-[Using generator as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+- [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
 
 <img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
+
+- [Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
+
+- [Using generator as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+
+- [Wrapping axios request (runkit.com)](https://runkit.com/digitalbrainjs/cancel-axios)
+
+````javascript
+function cancelableGet(url){
+    return new CPromise((resolve, reject, {onCancel})=>{
+        axios.get(url, {
+            cancelToken: new axios.CancelToken(function executor(cancel) {
+                onCancel(cancel)
+            })
+        }).then(resolve, reject);
+    });
+}
+````
 
 ## How it works
 

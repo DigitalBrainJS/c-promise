@@ -334,5 +334,26 @@ module.exports = {
                 assert.equal(canceledCounter, 2);
             });
         }
+    },
+    'method Symbol(toCPromise)': {
+        'should be invoked to convert the object to an CPromise instance': async function(){
+            const toCPromise= Symbol.for('toCPromise');
+            let invoked= false;
+            const obj= {
+                [toCPromise]: function(CPromise){
+                    invoked= true;
+                    return new CPromise((resolve)=> resolve(123));
+                }
+            };
+
+            const promise= CPromise.from(obj);
+
+            assert.ok(invoked);
+            assert.ok(promise instanceof CPromise);
+
+            return promise.then(value=>{
+                assert.equal(value, 123);
+            })
+        }
     }
 };
