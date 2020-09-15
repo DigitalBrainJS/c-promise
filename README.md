@@ -81,7 +81,7 @@ If cancellation failed (the chain has been already fulfilled) it will return `fa
 - :fire: supports generator to CPromise resolving (something similar like [co](https://www.npmjs.com/package/co) library does);
 - proper handling of `CanceledError` errors manually thrown inside the chain
 - :fire: progress capturing with result scaling to handle progress of the whole chain (including nested promise chains), useful for long-term operations
-- ability to install the `weight` for each promise in the chain
+- ability to set the `weight` for each promise in the chain
 - ability to attach meta info on each setting of the progress
 - the `delay` method to return promise that will be resolved with the value after timeout
 - static methods `all`, `race` support cancellation and will cancel all other pending
@@ -126,14 +126,14 @@ const chain= CPromise.from(function*(){
 ````
 Of course, if don't need cancellation, capture progress etc. you may use plain async functions with CPromise.
 #### CDN
-- [development UMD version with ](https://unpkg.com/c-promise2@0.1.0/dist/dev/c-promise.umd.js) 
+- [development UMD version with ](https://unpkg.com/c-promise2/dist/dev/c-promise.umd.js) 
 (additional error handling activated)
 
-- [production UMD version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.umd.js) (or [minified](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.umd.min.js) ~9KB)
+- [production UMD version](https://unpkg.com/c-promise2) (or [minified](https://unpkg.com/c-promise2/dist/c-promise.umd.min.js) ~9KB)
 
-- [production CommonJS version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.cjs.js)
+- [production CommonJS version](https://unpkg.com/c-promise2/dist/c-promise.cjs.js)
 
-- [production ESM version](https://unpkg.com/c-promise2@0.1.0/dist/c-promise.mjs)
+- [production ESM version](https://unpkg.com/c-promise2/dist/c-promise.mjs)
 
 ## Playground
 - Clone https://github.com/DigitalBrainJS/c-promise.git repo
