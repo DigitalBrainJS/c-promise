@@ -285,8 +285,8 @@ module.exports = {
             const timestamp = Date.now();
             const time = () => Date.now() - timestamp;
             return CPromise.all([
-                CPromise.delay(50, v1),
-                CPromise.delay(100, v2)
+                CPromise.delay(55, v1),
+                CPromise.delay(105, v2)
             ]).then((values)=>{
                 assert.ok(time() >= 100);
                 assert.deepStrictEqual(values, [v1, v2]);
@@ -316,7 +316,7 @@ module.exports = {
             const timestamp = Date.now();
             const time = () => Date.now() - timestamp;
             return CPromise.race([
-                CPromise.delay(50, v1),
+                CPromise.delay(55, v1),
                 CPromise.delay(100, v2)
             ]).then((value)=>{
                 assert.ok(time() >= 50 && time() < 100);

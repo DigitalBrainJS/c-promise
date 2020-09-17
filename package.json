@@ -1,7 +1,7 @@
 {
   "name": "c-promise2",
   "version": "0.3.1",
-  "description": "Cancelable promise chain with progress capturing and other extra features",
+  "description": "Promise with cancellation, progress capturing and other extra features.",
   "author": {
     "name": "Dmitriy Mozgovoy",
     "email": "robotshara@gmail.com",
@@ -73,6 +73,7 @@
     "promise",
     "cancelable",
     "cancellable",
+    "timeout",
     "progress",
     "cancel",
     "abortable",

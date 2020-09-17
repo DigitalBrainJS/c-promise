@@ -6,7 +6,7 @@
 
 ## SYNOPSIS :sparkles:
 
-CPromise is a subclass of the Promise provided by the environment with some extra features
+CPromise is built on top of the native Promise provided by the environment with some extra features
 like cancellation, timeouts and progress capturing. 
 
 In terms of the library **the cancellation means rejection of the deepest promise in
@@ -21,6 +21,23 @@ This lib can be used for both backend and frontend development, no any dependenc
 You may face with a challenge when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
+
+## Features / Advantages
+- there are no any dependencies (except [native] Promise), built-in `AbortController`
+- browser support
+- supports two ways to make your promise internal code cancellable: 
+    - `onCancel` callbacks (clear timers, abort requests)
+    - `signal` provided by the [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) (to wrap API like 
+[fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) method)
+- :fire: supports cancellation of the whole chain - rejects the deepest pending promise in the chain
+- :fire: supports generator to CPromise resolving (something similar like [co](https://www.npmjs.com/package/co) library does);
+- :fire: progress capturing with result scaling to handle progress of the whole chain (including nested promise chains), useful for long-term operations
+- ability to set the `weight` for each promise in the chain to manage the impact on chain progress
+- ability to attach meta info on each setting of the progress
+- the `delay` method to return promise that will be resolved with the value after timeout
+- static methods `all`, `race` support cancellation and will cancel all other pending
+ promises after the result promise settled
+- the `catch` method supports error class filtering
 
 ## Live Example
 
@@ -71,22 +88,6 @@ then if the error was not caught by the user code that chain and each above stan
 callbacks attached by `onCancel(cb)` method and/or propagate with signal from `AbortController`.
 These api can be used simultaneously. The `cancel([reason])` method is synchronous and can be called any time.
 If cancellation failed (the chain has been already fulfilled) it will return `false`.
-
-## Features / Advantages
-- there are no any dependencies (except [native] Promise)
-- browser support
-- :fire: supports cancellation of the whole chain - rejects the deepest pending promise in the chain
-- supports onCancel event handler to abort some internal work (clear timers, close requests etc.)
-- supports built-in signal interface for API that supports it (like fetch method)
-- :fire: supports generator to CPromise resolving (something similar like [co](https://www.npmjs.com/package/co) library does);
-- proper handling of `CanceledError` errors manually thrown inside the chain
-- :fire: progress capturing with result scaling to handle progress of the whole chain (including nested promise chains), useful for long-term operations
-- ability to set the `weight` for each promise in the chain
-- ability to attach meta info on each setting of the progress
-- the `delay` method to return promise that will be resolved with the value after timeout
-- static methods `all`, `race` support cancellation and will cancel all other pending
- promises after the result promise settled
-- the `catch` method supports error class filtering
 
 ## Installation :hammer:
 
