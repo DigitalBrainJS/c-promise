@@ -279,7 +279,7 @@ Cancellable Promise with extra features
             * [.cancel(reason)](#module_CPromise..CPromise+cancel) ⇒ <code>Boolean</code>
             * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
             * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
-            * [.catch(onRejected, filter)](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
+            * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
         * _static_
             * [.isCanceledError(thing)](#module_CPromise..CPromise.isCanceledError) ⇒ <code>boolean</code>
             * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
@@ -570,7 +570,7 @@ CPromise class
         * [.cancel(reason)](#module_CPromise..CPromise+cancel) ⇒ <code>Boolean</code>
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
-        * [.catch(onRejected, filter)](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
+        * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
     * _static_
         * [.isCanceledError(thing)](#module_CPromise..CPromise.isCanceledError) ⇒ <code>boolean</code>
         * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
@@ -665,7 +665,7 @@ returns a CPromise. It takes up to two arguments: callback functions for the suc
 
 <a name="module_CPromise..CPromise+catch"></a>
 
-#### cPromise.catch(onRejected, filter) ⇒ <code>CPromise</code>
+#### cPromise.catch(onRejected, [filter]) ⇒ <code>CPromise</code>
 Catches rejection with optionally specified Error class
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
@@ -673,7 +673,7 @@ Catches rejection with optionally specified Error class
 | Param | Type |
 | --- | --- |
 | onRejected | <code>function</code> | 
-| filter | <code>Error</code> | 
+| [filter] | <code>Error</code> | 
 
 <a name="module_CPromise..CPromise.isCanceledError"></a>
 
