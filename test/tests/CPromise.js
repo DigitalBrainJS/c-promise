@@ -21,6 +21,28 @@ module.exports = {
         }
     },
 
+    'should support cancallation by the external signal': async function(){
+        const controller = new CPromise.AbortController();
+
+        const timestamp = Date.now();
+        const time = () => Date.now() - timestamp;
+
+        setTimeout(() => controller.abort(), 55);
+
+        return new CPromise((resolve, reject) => {
+            setTimeout(resolve, 100);
+        }, {signal: controller.signal}).then(() => {
+            throw Error('not cancelled');
+        }, (err) => {
+            if (!CPromise.isCanceledError(err)) {
+                if (time() < 50) {
+                    throw Error('Early cancellation');
+                }
+                throw err;
+            }
+        })
+    },
+
     'prototype.cancel()': {
         'should reject the promise with CanceledError': async function () {
             const promise = new CPromise((resolve, reject) => {
@@ -79,7 +101,7 @@ module.exports = {
                 assert.fail('promise has not been canceled');
             }, (err) => {
                 if (err instanceof CPromise.CanceledError) {
-                    if (Date.now() - timestamp < timeout) {
+                    if (Date.now() - timestamp < timeout - 5) {
                         assert.fail('early cancellation detected')
                     }
                     if (currentChain !== targetChainIndex) {
