@@ -254,17 +254,16 @@ Cancellable Promise with extra features
             * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
             * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
             * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
-            * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
+            * [.progress(value, [data])](#module_CPromise..CPromiseScope+progress)
             * [.throttleProgress(minTick)](#module_CPromise..CPromiseScope+throttleProgress) ⇒ <code>CPromiseScope</code>
             * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
             * [.captureProgress()](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
             * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
-            * [.timeout(value)](#module_CPromise..CPromiseScope+timeout) ⇒ <code>Number</code> \| <code>this</code>
+            * [.timeout(ms)](#module_CPromise..CPromiseScope+timeout) ⇒ <code>Number</code> \| <code>this</code>
             * [.weight(weight)](#module_CPromise..CPromiseScope+weight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
             * [.label(label)](#module_CPromise..CPromiseScope+label) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
             * [.resolve(value)](#module_CPromise..CPromiseScope+resolve)
             * [.reject(err)](#module_CPromise..CPromiseScope+reject)
-            * [._done(err, value, [reject])](#module_CPromise..CPromiseScope+_done)
             * [.done(err, value)](#module_CPromise..CPromiseScope+done)
             * [.cancel([reason])](#module_CPromise..CPromiseScope+cancel)
         * _static_
@@ -355,17 +354,16 @@ Scope for CPromises instances
         * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
         * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
         * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
-        * [.progress([value], [data])](#module_CPromise..CPromiseScope+progress)
+        * [.progress(value, [data])](#module_CPromise..CPromiseScope+progress)
         * [.throttleProgress(minTick)](#module_CPromise..CPromiseScope+throttleProgress) ⇒ <code>CPromiseScope</code>
         * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
         * [.captureProgress()](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
         * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
-        * [.timeout(value)](#module_CPromise..CPromiseScope+timeout) ⇒ <code>Number</code> \| <code>this</code>
+        * [.timeout(ms)](#module_CPromise..CPromiseScope+timeout) ⇒ <code>Number</code> \| <code>this</code>
         * [.weight(weight)](#module_CPromise..CPromiseScope+weight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
         * [.label(label)](#module_CPromise..CPromiseScope+label) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
         * [.resolve(value)](#module_CPromise..CPromiseScope+resolve)
         * [.reject(err)](#module_CPromise..CPromiseScope+reject)
-        * [._done(err, value, [reject])](#module_CPromise..CPromiseScope+_done)
         * [.done(err, value)](#module_CPromise..CPromiseScope+done)
         * [.cancel([reason])](#module_CPromise..CPromiseScope+cancel)
     * _static_
@@ -414,14 +412,14 @@ registers the listener for cancel event
 
 <a name="module_CPromise..CPromiseScope+progress"></a>
 
-#### cPromiseScope.progress([value], [data])
+#### cPromiseScope.progress(value, [data])
 Set promise progress
 
 **Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| [value] | <code>Number</code> | a number between [0, 1] |
+| value | <code>Number</code> | a number between [0, 1] |
 | [data] | <code>\*</code> | any data to send for progress event listeners |
 
 <a name="module_CPromise..CPromiseScope+throttleProgress"></a>
@@ -461,14 +459,14 @@ Returns all parent scopes that are in pending state
 **Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
 <a name="module_CPromise..CPromiseScope+timeout"></a>
 
-#### cPromiseScope.timeout(value) ⇒ <code>Number</code> \| <code>this</code>
+#### cPromiseScope.timeout(ms) ⇒ <code>Number</code> \| <code>this</code>
 timeout before the promise will be canceled
 
 **Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | <code>Number</code> | timeout in ms |
+| ms | <code>Number</code> | timeout in ms |
 
 <a name="module_CPromise..CPromiseScope+weight"></a>
 
@@ -516,19 +514,6 @@ Rejects the promise with given error
 | --- |
 | err | 
 
-<a name="module_CPromise..CPromiseScope+_done"></a>
-
-#### cPromiseScope.\_done(err, value, [reject])
-Resolves or rejects the promise depending on the arguments
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| err |  | error object, if specified the promise will be rejected with this error, resolves otherwise |
-| value |  |  |
-| [reject] | <code>boolean</code> |  |
-
 <a name="module_CPromise..CPromiseScope+done"></a>
 
 #### cPromiseScope.done(err, value)
@@ -536,10 +521,10 @@ Resolves or rejects the promise depending on the arguments
 
 **Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
 
-| Param | Description |
-| --- | --- |
-| err | error object, if specified the promise will be rejected with this error, resolves otherwise |
-| value |  |
+| Param | Type | Description |
+| --- | --- | --- |
+| err |  | error object, if specified the promise will be rejected with this error, resolves otherwise |
+| value | <code>\*</code> |  |
 
 <a name="module_CPromise..CPromiseScope+cancel"></a>
 
@@ -816,7 +801,7 @@ Converts thing to CPromise using the following rules:- CPromise instance return
 <a name="module_CPromise..CPromiseOptions"></a>
 
 ### CPromise~CPromiseOptions : <code>PromiseScopeOptions</code> \| <code>String</code> \| <code>Number</code>
-If value is a number it will be considered as the value for timeout optionIf value is a string it will be considered as label
+- If value is a number it will be considered as the value for timeout option- If value is a string it will be considered as a label
 
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 
