@@ -4,6 +4,26 @@
 ![npm bundle size](https://img.shields.io/bundlephobia/minzip/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
+# Table of contents
+- [SYNOPSIS](#synopsis-sparkles)
+- [Why](#why-question)
+- [Features](#features--advantages)
+- [Usage examples](#usage-examples)
+    - [Live examples](#live-examples)
+    - [Abortable fetch with timeout support](#abortable-fetch-with-timeout)
+    - [Abortable axios request wrapper](#abortable-axios-request-wrapper)
+- [How it works](#how-it-works)
+- [Installation](#installation-hammer)
+    - [NPM/Yarn](#using-npmyarn)
+    - [CDN](#cdn)
+- [Playground](#playground)
+- [Progress capturing example](#progress-capturing-example)
+- [Using Generators](#using-generators)
+- [API Reference](#api-reference)
+    - [CPromise](#cpromisecpromise--codepromisecode)
+    - [CPromiseScope](#cpromisescopecaptureprogress--codecpromisescopecode)
+- [License](#license)
+
 ## SYNOPSIS :sparkles:
 
 CPromise is built on top of the native Promise provided by the environment with some extra features
@@ -39,7 +59,21 @@ has lost its relevance to you.
  promises after the result promise settled
 - the `catch` method supports error class filtering
 
-## Live Example
+## Usage examples
+
+#### Live Examples
+
+- [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
+
+<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
+
+- [Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
+
+- [Using generator as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+
+- [Wrapping axios request (runkit.com)](https://runkit.com/digitalbrainjs/cancel-axios)
+
+#### Abortable fetch with timeout
 
 This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
 ````javascript
@@ -59,15 +93,23 @@ const chain= fetchWithTimeout('http://localhost/', {timeout: 5000})
 // Take into account the related network request will also be aborted
 ````
 
-- [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
+The same using generators as async function:
 
-<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
+````javascript
 
-- [Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
+const chain= CPromise.from(function*(){
+    try{
+        const data= yield fetchWithTimeout('http://localhost/', {timeout: 5000});
+        console.log(`Done: `, data)
+    }catch(err){
+        console.log(`Error: `, err)
+    }   
+});
 
-- [Using generator as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+// setTimeout(()=> chain.cancel(), 1000); 
+````
 
-- [Wrapping axios request (runkit.com)](https://runkit.com/digitalbrainjs/cancel-axios)
+#### Abortable axios request wrapper
 
 ````javascript
 function cancelableGet(url){
@@ -81,68 +123,7 @@ function cancelableGet(url){
 }
 ````
 
-## How it works
-
-The deepest pending CPromise in the chain will be rejected will a `CanceledError`, 
-then if the error was not caught by the user code that chain and each above standing chain emit `cancel` event. This event will be handled by
-callbacks attached by `onCancel(cb)` method and/or propagate with signal from `AbortController`.
-These api can be used simultaneously. The `cancel([reason])` method is synchronous and can be called any time.
-If cancellation failed (the chain has been already fulfilled) it will return `false`.
-
-## Installation :hammer:
-
-- Install for node.js using npm/yarn:
-
-```bash
-$ npm install c-promise2
-```
-
-```bash
-$ yarn add c-promise2
-```
-
-The package consists pre-built bundles with umd, cjs, mjs versions which can be found in the `./dist/` directory
-
-- Import the library:
-
-````javascript
-import CPromise from "c-promise2";
-// const CPromise = require("c-promise2"); // using require
-// import CPromise from "c-promise2/dev"; // development version
-    
-const chain= CPromise.delay(1000, 'It works!').then(message => console.log('Done', message));
-
-//chain.cancel();
-````
-You can use generators as a replacement for async:
-````javascript
-import CPromise from "c-promise2";
-
-const chain= CPromise.from(function*(){
-    yield 1000; // wait for 1000ms- converts to CPromise.delay(1000)
-    return "It works!";
-}).then(message=> console.log(`Done: ${message}`));
-
-//chain.cancel()
-````
-Of course, if don't need cancellation, capture progress etc. you may use plain async functions with CPromise.
-#### CDN
-- [development UMD version with ](https://unpkg.com/c-promise2/dist/dev/c-promise.umd.js) 
-(additional error handling activated)
-
-- [production UMD version](https://unpkg.com/c-promise2) (or [minified](https://unpkg.com/c-promise2/dist/c-promise.umd.min.js) ~9KB)
-
-- [production CommonJS version](https://unpkg.com/c-promise2/dist/c-promise.cjs.js)
-
-- [production ESM version](https://unpkg.com/c-promise2/dist/c-promise.mjs)
-
-## Playground
-- Clone https://github.com/DigitalBrainJS/c-promise.git repo
-- Run npm install to install dev-dependencies
-- Open playground/basic.js file with a basic example
-- Run this file using npm run playground or npm run playground:watch command to see the result
-
-## Usage example
+#### Progress capturing example
 Handling cancellation with `onCancel` listeners (see the [live demo](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)):
 ````javascript
 import CPromise from "c-promise2";
@@ -220,6 +201,67 @@ Is canceled: true
 
 Process finished with exit code 0
 ```
+
+## How it works
+
+The deepest pending CPromise in the chain will be rejected will a `CanceledError`, 
+then if the error was not caught by the user code that chain and each above standing chain emit `cancel` event. This event will be handled by
+callbacks attached by `onCancel(cb)` method and/or propagate with signal from `AbortController`.
+These api can be used simultaneously. The `cancel([reason])` method is synchronous and can be called any time.
+If cancellation failed (the chain has been already fulfilled) it will return `false`.
+
+## Installation :hammer:
+
+#### Using npm/yarn:
+
+```bash
+$ npm install c-promise2
+```
+
+```bash
+$ yarn add c-promise2
+```
+
+The package consists pre-built bundles with umd, cjs, mjs versions which can be found in the `./dist/` directory
+
+- Import the library:
+
+````javascript
+import CPromise from "c-promise2";
+// const CPromise = require("c-promise2"); // using require
+// import CPromise from "c-promise2/dev"; // development version
+    
+const chain= CPromise.delay(1000, 'It works!').then(message => console.log('Done', message));
+
+//chain.cancel();
+````
+You can use generators as a replacement for async:
+````javascript
+import CPromise from "c-promise2";
+
+const chain= CPromise.from(function*(){
+    yield 1000; // wait for 1000ms- converts to CPromise.delay(1000)
+    return "It works!";
+}).then(message=> console.log(`Done: ${message}`));
+
+//chain.cancel()
+````
+Of course, if don't need cancellation, capture progress etc. you may use plain async functions with CPromise.
+#### CDN
+- [development UMD version with ](https://unpkg.com/c-promise2/dist/dev/c-promise.umd.js) 
+(additional error handling activated)
+
+- [production UMD version](https://unpkg.com/c-promise2) (or [minified](https://unpkg.com/c-promise2/dist/c-promise.umd.min.js) ~9KB)
+
+- [production CommonJS version](https://unpkg.com/c-promise2/dist/c-promise.cjs.js)
+
+- [production ESM version](https://unpkg.com/c-promise2/dist/c-promise.mjs)
+
+## Playground
+- Clone https://github.com/DigitalBrainJS/c-promise.git repo
+- Run npm install to install dev-dependencies
+- Open playground/basic.js file with a basic example
+- Run this file using npm run playground or npm run playground:watch command to see the result
 
 ## Using Generators
 See the [live demo](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
