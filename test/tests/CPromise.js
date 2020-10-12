@@ -4,11 +4,11 @@ const {CanceledError} = CPromise;
 
 const delay = (ms, value, options) => new CPromise(resolve => setTimeout(() => resolve(value), ms), options);
 
-const makePromise= (ms, value, onCancelCb)=> {
-    return new CPromise((resolve, reject, {onCancel})=>{
+const makePromise = (ms, value, onCancelCb) => {
+    return new CPromise((resolve, reject, {onCancel}) => {
         setTimeout(resolve, ms, value);
-        onCancel(onCancelCb);
-    })
+        onCancelCb && onCancel(onCancelCb);
+    });
 }
 
 module.exports = {
@@ -21,7 +21,7 @@ module.exports = {
         }
     },
 
-    'should support cancallation by the external signal': async function(){
+    'should support cancallation by the external signal': async function () {
         const controller = new CPromise.AbortController();
 
         const timestamp = Date.now();
@@ -232,16 +232,12 @@ module.exports = {
                     assert.equal(resolved2, 456);
                 });
             },
-            'should handle arguments': async function () {
-                return CPromise.from(function* (...args) {
-                    assert.deepStrictEqual(args, [1, 2, 3], 'arguments does not match');
-                }, [1, 2, 3]);
-            },
-            'should reject the promise if generator thown an error': async function () {
+
+            'should reject the promise if generator thrown an error': async function () {
                 return CPromise.from(function* () {
                     const timestamp = Date.now();
                     const time = () => Date.now() - timestamp;
-                    yield 105;
+                    yield CPromise.delay(105);
                     throw Error('test');
                 }).then(() => {
                     assert.ok(time() >= 100, 'early throw detected');
@@ -261,7 +257,7 @@ module.exports = {
                 });
 
                 const chain = CPromise.from(function* () {
-                    yield 100;
+                    yield CPromise.delay(100);
                     try {
                         yield delay(100);
                     } catch (err) {
@@ -286,13 +282,13 @@ module.exports = {
                 let index = 0;
 
                 const chain = CPromise.from(function* () {
-                    this.captureProgress(10)
+                    this.innerWeight(10)
                     let i = 10;
                     while (--i > 0) {
-                        yield 100;
+                        yield CPromise.delay(100);
                     }
                 }).progress(value => {
-                    assert.equal(value, expected[index], `Progress for index ${index} doesn't match`);
+                    assert.equal(value, expected[index]);
                     index++;
                 });
 
@@ -301,79 +297,107 @@ module.exports = {
         }
     },
     'all': {
-        'should resolved with array of inner chain vales': async function(){
-            const v1= 123;
-            const v2= 456;
+        'should resolved with array of inner chain vales': async function () {
+            const v1 = 123;
+            const v2 = 456;
             const timestamp = Date.now();
             const time = () => Date.now() - timestamp;
             return CPromise.all([
                 CPromise.delay(55, v1),
                 CPromise.delay(105, v2)
-            ]).then((values)=>{
+            ]).then((values) => {
                 assert.ok(time() >= 100);
                 assert.deepStrictEqual(values, [v1, v2]);
             })
         },
 
-        'should cancel pending chains on reject': async function(){
-            const message= 'test';
-            let canceledCounter=0;
+        'should cancel pending chains on reject': async function () {
+            const message = 'test';
+            let canceledCounter = 0;
             return CPromise.all([
                 CPromise.reject(new Error(message)),
-                makePromise(50, 123, ()=> canceledCounter++),
-                makePromise(100, 456, ()=> canceledCounter++),
-            ]).then(()=>{
+                makePromise(50, 123, () => canceledCounter++),
+                makePromise(100, 456, () => canceledCounter++),
+            ]).then(() => {
                 assert.fail('does not throw');
-            }, err=>{
+            }, err => {
                 assert.equal(err.message, message);
-            }).then(()=>{
+            }).then(() => {
                 assert.equal(canceledCounter, 2);
+            })
+        },
+
+        'should support concurrency': async function () {
+            let pending = 0;
+
+            setTimeout(() => {
+                assert.equal(pending, 2);
+            }, 10);
+
+            setTimeout(() => {
+                assert.equal(pending, 2);
+            }, 110);
+
+            setTimeout(() => {
+                assert.equal(pending, 1);
+            }, 210);
+
+            return CPromise.all(function* () {
+                for (let i = 0; i < 5; i++) {
+                    pending++;
+                    yield makePromise(100, i).then((v) => {
+                        pending--;
+                        return v;
+                    });
+                }
+            }, {concurrency: 2}).then((values) => {
+                assert.deepStrictEqual(values, [0, 1, 2, 3, 4]);
             })
         }
     },
     'race': {
-        'should return a promise that fulfills or rejects as soon as one of the promises settled': async function(){
-            const v1= 123;
-            const v2= 456;
+        'should return a promise that fulfills or rejects as soon as one of the promises settled': async function () {
+            const v1 = 123;
+            const v2 = 456;
             const timestamp = Date.now();
             const time = () => Date.now() - timestamp;
             return CPromise.race([
                 CPromise.delay(55, v1),
                 CPromise.delay(100, v2)
-            ]).then((value)=>{
+            ]).then((value) => {
                 assert.ok(time() >= 50 && time() < 100);
                 assert.equal(value, v1);
             })
         },
 
-        'should cancel other pending chains on settled': async function(){
-            let canceledCounter=0;
+        'should cancel other pending chains on settled': async function () {
+            let canceledCounter = 0;
             return CPromise.race([
-                makePromise(50, 123, ()=> canceledCounter++),
-                makePromise(100, 456, ()=> canceledCounter++),
-                makePromise(150, 789, ()=> canceledCounter++),
-            ]).then(()=>{
+                makePromise(50, 123, () => canceledCounter++),
+                makePromise(100, 456, () => canceledCounter++),
+                makePromise(150, 789, () => canceledCounter++),
+            ]).then(() => {
                 assert.equal(canceledCounter, 2);
             });
         }
     },
     'method Symbol(toCPromise)': {
-        'should be invoked to convert the object to an CPromise instance': async function(){
-            const toCPromise= Symbol.for('toCPromise');
-            let invoked= false;
-            const obj= {
-                [toCPromise]: function(CPromise){
-                    invoked= true;
-                    return new CPromise((resolve)=> resolve(123));
+        'should be invoked to convert the object to an CPromise instance': async function () {
+            const toCPromise = Symbol.for('toCPromise');
+            let invoked = false;
+            const obj = {
+                [toCPromise]: function (CPromise) {
+                    invoked = true;
+                    return new CPromise((resolve) => resolve(123));
                 }
             };
 
-            const promise= CPromise.from(obj);
+            const promise = CPromise.from(obj);
 
             assert.ok(invoked);
             assert.ok(promise instanceof CPromise);
 
-            return promise.then(value=>{
+            return promise.then(value => {
                 assert.equal(value, 123);
             })
         }

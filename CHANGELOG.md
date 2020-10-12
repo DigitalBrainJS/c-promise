@@ -6,17 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
-## [0.4.2] - 2020-09-25
+## [0.5.0] - 2020-10-04
 
-### Fixed 
+### Added
 
-- Bug with clearing the internal timer when promise resolving/rejecting;
+- Concurrency, mapper, signatures options for `all` method
 
-## [0.4.1] - 2020-09-23
+### Removed
 
-### Updated
-
-- Documentation
+- AsyncGeneratorScope class
+- Resolving numbers to a delay for `CPromise.from` method 
 
 ## [0.4.0] - 2020-09-20
 
