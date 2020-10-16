@@ -165,7 +165,7 @@ You can use generators as a replacement for async:
 import CPromise from "c-promise2";
 
 const chain= CPromise.from(function*(){
-    yield 1000; // wait for 1000ms- converts to CPromise.delay(1000)
+    yield CPromise.delay(1000); // wait for 1000ms- converts to CPromise.delay(1000)
     return "It works!";
 }).then(message=> console.log(`Done: ${message}`));
 
@@ -195,9 +195,9 @@ import CPromise from "c-promise2";
 
 const promise= CPromise.from(function*(x, y, z){
     this.captureProgress(4); //optionally set the expected total progress score of the chain
-    yield 1000; // wait for 1000ms- converts to CPromise.delay(1000)
-    yield [1000, 1500] // resolve chains using CPromise.all([...chains]);
-    yield [[1000, 1500]] // resolve chains using CPromise.race([...chains]);
+    yield CPromise.delay(1000); // wait for 1000ms- converts to CPromise.delay(1000)
+    yield [CPromise.delay(1000), CPromise.delay(1500)] // resolve chains using CPromise.all([...chains]);
+    yield [[CPromise.delay(1000), CPromise.delay(1500)]] // resolve chains using CPromise.race([...chains]);
     const status= yield new Promise(resolve=> resolve(true)); // any thenable object will be resolved
     return "It works!"; //return statement supports resolving only thenable objects ot plain values
 }, [1, 2, 3]).then(message=> console.log(`Done: ${message}`));
@@ -215,6 +215,7 @@ Cancellable Promise with extra features
             * [.signal](#module_CPromise..CPromiseScope+signal) : <code>AbortSignal</code>
             * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
             * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
+            * [.isCaptured](#module_CPromise..CPromiseScope+isCaptured) ⇒ <code>boolean</code>
             * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
             * [.totalWeight([weight])](#module_CPromise..CPromiseScope+totalWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
             * [.innerWeight([weight])](#module_CPromise..CPromiseScope+innerWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
@@ -253,7 +254,6 @@ Cancellable Promise with extra features
     * [~onRejected](#module_CPromise..onRejected) : <code>function</code>
     * [~OnCancelListener](#module_CPromise..OnCancelListener) : <code>function</code>
     * [~CPromiseExecutorFn](#module_CPromise..CPromiseExecutorFn) : <code>function</code>
-    * [~CPromiseExecutorFn](#module_CPromise..CPromiseExecutorFn) : <code>function</code>
     * [~CPromiseOptions](#module_CPromise..CPromiseOptions) : <code>PromiseScopeOptions</code> \| <code>String</code> \| <code>Number</code>
     * [~AllOptions](#module_CPromise..AllOptions) : <code>object</code>
 
@@ -271,6 +271,7 @@ Scope for CPromises instances
         * [.signal](#module_CPromise..CPromiseScope+signal) : <code>AbortSignal</code>
         * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
         * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
+        * [.isCaptured](#module_CPromise..CPromiseScope+isCaptured) ⇒ <code>boolean</code>
         * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
         * [.totalWeight([weight])](#module_CPromise..CPromiseScope+totalWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
         * [.innerWeight([weight])](#module_CPromise..CPromiseScope+innerWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
@@ -316,6 +317,12 @@ indicates if the promise is pending
 
 #### cPromiseScope.isCanceled ⇒ <code>Boolean</code>
 indicates if the promise is pending
+
+**Kind**: instance property of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
+<a name="module_CPromise..CPromiseScope+isCaptured"></a>
+
+#### cPromiseScope.isCaptured ⇒ <code>boolean</code>
+indicates if the promise progress is captured
 
 **Kind**: instance property of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
 <a name="module_CPromise..CPromiseScope+onCancel"></a>
@@ -483,9 +490,9 @@ Executes the promise executor in the PromiseScope context
 | Param | Type |
 | --- | --- |
 | executor | <code>CPromiseExecutorFn</code> | 
-| resolve |  | 
-| reject |  | 
-| options |  | 
+| resolve | <code>function</code> | 
+| reject | <code>function</code> | 
+| options | <code>Object</code> | 
 
 <a name="module_CPromise..CPromise"></a>
 
@@ -724,16 +731,6 @@ Converts thing to CPromise using the following rules:- CPromise instance return
 | reject | <code>function</code> | 
 | scope | <code>CPromiseScope</code> | 
 
-<a name="module_CPromise..CPromiseExecutorFn"></a>
-
-### CPromise~CPromiseExecutorFn : <code>function</code>
-**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
-
-| Param | Type |
-| --- | --- |
-| resolve | <code>function</code> | 
-| reject | <code>function</code> | 
-
 <a name="module_CPromise..CPromiseOptions"></a>
 
 ### CPromise~CPromiseOptions : <code>PromiseScopeOptions</code> \| <code>String</code> \| <code>Number</code>
@@ -748,7 +745,7 @@ If value is a number it will be considered as the value for timeout optionIf va
 
 | Name | Type | Description |
 | --- | --- | --- |
-| limit | <code>number</code> | concurrency of promise being run simultaneously |
+| concurrency | <code>number</code> | limit concurrency of promise being run simultaneously |
 | mapper | <code>function</code> | mapper function to map each element |
 | ignoreResults | <code>boolean</code> | do not collect results |
 | signatures | <code>boolean</code> | use advanced signatures for vales resolving |
