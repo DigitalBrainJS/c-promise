@@ -59,15 +59,13 @@ Failed: CanceledError: canceled
 Process finished with exit code 0
 ````
 
-This lib can be used for both backend and frontend development, no any dependencies required.
-
 ## Why :question:
 
 You may face with a challenge when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
 
-## Features / Advantages
+## Features
 - no dependencies (except [native] Promise)
 - built-in `AbortController` class
 - browser support
@@ -75,18 +73,18 @@ has lost its relevance to you.
     - `onCancel` callbacks (clear timers, abort requests)
     - `signal` provided by the [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) (to wrap API like 
 [fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) method)
-- :fire: supports cancellation of the whole chain - rejects the deepest pending promise in the chain
+- :fire: supports cancellation of the whole chain
 - :fire: supports generator to CPromise resolving (something similar like [co](https://www.npmjs.com/package/co) library does);
-- :fire: progress capturing with result scaling to handle progress of the whole chain (including nested promise chains), useful for long-term operations
-- `CPromise.all` supports concurrency limit. Promises can be produced by generator function on the fly.
-- static `all` and `race` methods support cancellation, so the others pending promises will be canceled
+- :fire: progress capturing support
+- `CPromise.all` supports concurrency limit
+- `CPromise.all` and `CPromise.race` methods have cancellation support, so the others nested pending promises will be canceled
  when the result promise settled
  - `delay` method to return promise that will be resolved with the value after timeout
  - ability to set the `weight` for each promise in the chain to manage the impact on chain progress
  - ability to attach meta info on each setting of the progress
 - `catch` method supports error class filtering
 
-## Live Example
+## Live Examples
 
 This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
 ````javascript
@@ -100,9 +98,10 @@ const promise= fetchWithTimeout('http://localhost/', {timeout: 5000})
       .then(response => response.json())
       .then(data => console.log(`Done: `, data), err => console.log(`Error: `, err))
 
-// setTimeout(()=> promise.cancel(), 1000); 
+setTimeout(()=> promise.cancel(), 1000); 
+
 // you able to call cancel() at any time to cancel the entire chain at any stage
-// Take into account the related network request will also be aborted
+// the related network request will also be aborted
 ````
 
 - [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
@@ -116,7 +115,7 @@ const promise= fetchWithTimeout('http://localhost/', {timeout: 5000})
 - [Wrapping axios request (runkit.com)](https://runkit.com/digitalbrainjs/cancel-axios)
 
 ````javascript
-function cancelableGet(url){
+function cancelableAxios(url){
     return new CPromise((resolve, reject, {onCancel})=>{
         axios.get(url, {
             cancelToken: new axios.CancelToken(function executor(cancel) {
@@ -126,14 +125,49 @@ function cancelableGet(url){
     });
 }
 ````
+Concurrency limit:
+````javascript
+import CPromise from "c-promise2";
+import cpFetch from "cp-fetch";
 
-## How it works
+(async()=>{
+    await CPromise.all([
+        'url1',
+        'url2',
+        'url3',
+        'url4',
+        'url5',
+        'url6',
+    ], {
+        mapper: async (url) => {
+            return cpFetch(url);
+        },
+        concurrency: 2
+    })
+    console.log('Done');
+});
 
-The deepest pending CPromise in the chain will be rejected will a `CanceledError`, 
-then if the error was not caught by the user code that chain and each above standing chain emit `cancel` event. This event will be handled by
-callbacks attached by `onCancel(cb)` method and/or propagate with signal from `AbortController`.
-These api can be used simultaneously. The `cancel([reason])` method is synchronous and can be called any time.
-If cancellation failed (the chain has been already fulfilled) it will return `false`.
+// Or
+
+(async()=>{
+    await CPromise.all(function*(){
+        const urls= [
+           'url1',
+           'url2',
+           'url3',
+           'url4',
+           'url5',
+           'url6',
+        ];
+        for(let url of urls){
+            yield cpFetch('url1');
+        }
+    }, {
+        concurrency: 2
+    })
+    console.log('Done');
+})();
+````
 
 ## Installation :hammer:
 
@@ -147,7 +181,7 @@ $ npm install c-promise2
 $ yarn add c-promise2
 ```
 
-The package consists pre-built bundles with umd, cjs, mjs versions which can be found in the `./dist/` directory
+The package consists pre-built bundles for umd, cjs, mjs versions which can be found in the `./dist/` directory
 
 - Import the library:
 
@@ -160,19 +194,7 @@ const chain= CPromise.delay(1000, 'It works!').then(message => console.log('Done
 
 //chain.cancel();
 ````
-You can use generators as a replacement for async:
-````javascript
-import CPromise from "c-promise2";
-
-const chain= CPromise.from(function*(){
-    yield CPromise.delay(1000); // wait for 1000ms- converts to CPromise.delay(1000)
-    return "It works!";
-}).then(message=> console.log(`Done: ${message}`));
-
-//chain.cancel()
-````
-Of course, if don't need cancellation, capture progress etc. you may use plain async functions with CPromise.
-#### CDN
+As an alternative you can use any CDN with npn support:
 - [development UMD version with ](https://unpkg.com/c-promise2/dist/dev/c-promise.umd.js) 
 (additional error handling activated)
 
@@ -182,26 +204,32 @@ Of course, if don't need cancellation, capture progress etc. you may use plain a
 
 - [production ESM version](https://unpkg.com/c-promise2/dist/c-promise.mjs)
 
-## Playground
-- Clone https://github.com/DigitalBrainJS/c-promise.git repo
-- Run npm install to install dev-dependencies
-- Open playground/basic.js file with a basic example
-- Run this file using npm run playground or npm run playground:watch command to see the result
+## Using Generators instead of ECMA async functions 
+Generally you can use CPromise with ES6 async functions, but if you need some specific functionality
+such as progress capturing or cancellation, you need to use generators instead of async functions to make it work.
+This is because the async function leads all the nested thenables into its own Promise class,
+and there is nothing we can do about it.
+Generators allow you to write asynchronous code just in the same way as async functions do, just use `yield` instead of `await`.
 
-## Using Generators
-See the [live demo](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
+See the [live demo](https://codesandbox.io/s/happy-ganguly-t1xx8?file=/src/index.js:429-451)
 ````javascript
 import CPromise from "c-promise2";
 
-const promise= CPromise.from(function*(x, y, z){
-    this.captureProgress(4); //optionally set the expected total progress score of the chain
-    yield CPromise.delay(1000); // wait for 1000ms- converts to CPromise.delay(1000)
+const promise= CPromise.from(function*(){
+    this.innerWeight(12); //optionally set the expected internal progress score of the nested chain
+    yield CPromise.delay(1000);
     yield [CPromise.delay(1000), CPromise.delay(1500)] // resolve chains using CPromise.all([...chains]);
     yield [[CPromise.delay(1000), CPromise.delay(1500)]] // resolve chains using CPromise.race([...chains]);
-    const status= yield new Promise(resolve=> resolve(true)); // any thenable object will be resolved
-    return "It works!"; //return statement supports resolving only thenable objects ot plain values
-}, [1, 2, 3]).then(message=> console.log(`Done: ${message}`));
+    yield new CPromise(resolve=> resolve(true)); // any thenable object will be resolved 
+    return "It works!";
+}, [1, 2, 3])
+.progress(value=> console.log(`Progress: ${value}`))
+.then(message=> console.log(`Done: ${message}`));
 ````
+
+## Related projects
+- [cp-axios](https://www.npmjs.com/package/cp-axios) - a simple axios wrapper that provides an advanced cancellation api
+- [cp-fetch](https://www.npmjs.com/package/cp-fetch) - fetch with timeouts and request cancellation
 
 ## API Reference
 
@@ -221,7 +249,7 @@ Cancellable Promise with extra features
             * [.innerWeight([weight])](#module_CPromise..CPromiseScope+innerWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
             * [.progress(value, [data])](#module_CPromise..CPromiseScope+progress)
             * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
-            * [.captureProgress(options)](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
+            * [.captureProgress([options])](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
             * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
             * [.timeout(ms)](#module_CPromise..CPromiseScope+timeout) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
             * [.weight(weight)](#module_CPromise..CPromiseScope+weight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
@@ -277,7 +305,7 @@ Scope for CPromises instances
         * [.innerWeight([weight])](#module_CPromise..CPromiseScope+innerWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
         * [.progress(value, [data])](#module_CPromise..CPromiseScope+progress)
         * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
-        * [.captureProgress(options)](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
+        * [.captureProgress([options])](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
         * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
         * [.timeout(ms)](#module_CPromise..CPromiseScope+timeout) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
         * [.weight(weight)](#module_CPromise..CPromiseScope+weight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
@@ -384,15 +412,16 @@ emit propagate event that will propagate through each promise scope in the chain
 
 <a name="module_CPromise..CPromiseScope+captureProgress"></a>
 
-#### cPromiseScope.captureProgress(options) ⇒ <code>CPromiseScope</code>
+#### cPromiseScope.captureProgress([options]) ⇒ <code>CPromiseScope</code>
 capture initial progress state of the chain
 
 **Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| options | <code>Object</code> |  |
+| [options] | <code>Object</code> |  |
 | options.throttle | <code>Number</code> | set min interval for firing progress event |
+| options.innerWeight | <code>Number</code> | set weight of the nested promises |
 
 <a name="module_CPromise..CPromiseScope+scopes"></a>
 
@@ -746,7 +775,7 @@ If value is a number it will be considered as the value for timeout optionIf va
 | Name | Type | Description |
 | --- | --- | --- |
 | concurrency | <code>number</code> | limit concurrency of promise being run simultaneously |
-| mapper | <code>function</code> | mapper function to map each element |
+| mapper | <code>function</code> | function to map each element |
 | ignoreResults | <code>boolean</code> | do not collect results |
 | signatures | <code>boolean</code> | use advanced signatures for vales resolving |
 

@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
+## [0.5.3] - 2020-10-16
+
+### Added
+- `innerWeight` option for captureProgress method
+
 ## [0.5.2] - 2020-10-16
 
 ### Fixed
