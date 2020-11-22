@@ -711,10 +711,9 @@ emits the event
 <a name="module_CPromise..CPromise+emitHook"></a>
 
 #### cPromise.emitHook(type, ...args) ⇒ <code>Boolean</code>
-emits the hook event
+emits event as a hook. If some listener return true, this method will immediately return true as the result.Else if some listener returns false the method will return false after invoking all the listeners
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
-**Returns**: <code>Boolean</code> - - false if some listener returned false  
 
 | Param | Type |
 | --- | --- |
