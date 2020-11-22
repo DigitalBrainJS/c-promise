@@ -34,13 +34,24 @@ You might be interested in using it if you need the following features:
 In terms of the library **the cancellation means rejection with a special error subclass**.
 
 ````javascript
-const chain= new CPromise((resolve, reject, {onCancel, onPause, onResume})=>{
+const promise= new CPromise((resolve, reject, {onCancel, onPause, onResume})=>{
     onCancel(()=>{
         //optionally some code here to abort your long-term task (abort request, stop timers etc.)
     });
 }).then(console.log, console.warn);
 
-setTimeout(()=> chain.cancel(), 1000);
+console.log('isPromise:', promise instanceof Promise); // true
+
+(async()=>{
+    try {
+        console.log(`Done: `, await promise);
+    }catch(err){
+        console.warn(`Failed: ${err}`); // Failed: CanceledError: canceled
+        console.log('isCanceled:', promise.isCanceled); // true
+    }
+})()
+
+setTimeout(()=> promise.cancel(), 1000);
 ````
 
 
@@ -325,7 +336,6 @@ const promise= CPromise.from(function*(){
 
 {{#module name="CPromise"}}
 {{>body}}
-{{>member-index~}}
 {{>separator~}}
 {{>members~}}
 {{/module}}

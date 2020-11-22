@@ -34,13 +34,24 @@ You might be interested in using it if you need the following features:
 In terms of the library **the cancellation means rejection with a special error subclass**.
 
 ````javascript
-const chain= new CPromise((resolve, reject, {onCancel, onPause, onResume})=>{
+const promise= new CPromise((resolve, reject, {onCancel, onPause, onResume})=>{
     onCancel(()=>{
         //optionally some code here to abort your long-term task (abort request, stop timers etc.)
     });
 }).then(console.log, console.warn);
 
-setTimeout(()=> chain.cancel(), 1000);
+console.log('isPromise:', promise instanceof Promise); // true
+
+(async()=>{
+    try {
+        console.log(`Done: `, await promise);
+    }catch(err){
+        console.warn(`Failed: ${err}`); // Failed: CanceledError: canceled
+        console.log('isCanceled:', promise.isCanceled); // true
+    }
+})()
+
+setTimeout(()=> promise.cancel(), 1000);
 ````
 
 
@@ -324,56 +335,6 @@ const promise= CPromise.from(function*(){
 ## API Reference
 
 Cancellable Promise with extra features
-
-
-* [CPromise](#module_CPromise)
-    * [~CPromise](#module_CPromise..CPromise) ⇐ <code>Promise</code>
-        * [new CPromise(executor, [options])](#new_module_CPromise..CPromise_new)
-        * _instance_
-            * [.signal](#module_CPromise..CPromise+signal) : <code>AbortSignal</code>
-            * [.isPending](#module_CPromise..CPromise+isPending) ⇒ <code>Boolean</code>
-            * [.isCanceled](#module_CPromise..CPromise+isCanceled) ⇒ <code>Boolean</code>
-            * [.isCaptured](#module_CPromise..CPromise+isCaptured) ⇒ <code>Boolean</code>
-            * [.isPaused](#module_CPromise..CPromise+isPaused) ⇒ <code>Boolean</code>
-            * [.parent](#module_CPromise..CPromise+parent) ⇒ <code>CPromise</code> \| <code>null</code>
-            * [.totalWeight([weight])](#module_CPromise..CPromise+totalWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
-            * [.innerWeight([weight])](#module_CPromise..CPromise+innerWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
-            * [.progress(value, [data])](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
-            * [.propagate(type, data)](#module_CPromise..CPromise+propagate) ⇒ <code>CPromise</code>
-            * [.captureProgress([options])](#module_CPromise..CPromise+captureProgress) ⇒ <code>CPromise</code>
-            * [.scopes()](#module_CPromise..CPromise+scopes) ⇒ <code>Array.&lt;CPromise&gt;</code>
-            * [.timeout([ms])](#module_CPromise..CPromise+timeout) ⇒ <code>Number</code> \| <code>CPromise</code>
-            * [.weight([weight])](#module_CPromise..CPromise+weight) ⇒ <code>Number</code> \| <code>CPromise</code>
-            * [.label([label])](#module_CPromise..CPromise+label) ⇒ <code>Number</code> \| <code>CPromise</code>
-            * [.resolve(value)](#module_CPromise..CPromise+resolve) ⇒ <code>CPromise</code>
-            * [.reject(err)](#module_CPromise..CPromise+reject) ⇒ <code>CPromise</code>
-            * [.pause()](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
-            * [.resume()](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
-            * [.cancel([reason])](#module_CPromise..CPromise+cancel)
-            * [.emitSignal(type, data)](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
-            * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
-            * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
-            * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
-            * [.listenersCount(type)](#module_CPromise..CPromise+listenersCount) ⇒ <code>Number</code>
-            * [.hasListeners(type)](#module_CPromise..CPromise+hasListeners) ⇒ <code>Boolean</code>
-            * [.once(type, listener)](#module_CPromise..CPromise+once) ⇒ <code>CPromise</code>
-            * [.emit(type, ...args)](#module_CPromise..CPromise+emit) ⇒ <code>CPromise</code>
-            * [.emitHook(type, ...args)](#module_CPromise..CPromise+emitHook) ⇒ <code>Boolean</code>
-        * _static_
-            * [.isCanceledError(thing)](#module_CPromise..CPromise.isCanceledError) ⇒ <code>boolean</code>
-            * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
-            * [.all(iterable, options)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
-            * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
-            * [.allSettled(iterable, options)](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
-            * [.from(thing, [resolveSignatures])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
-    * [~EventType](#module_CPromise..EventType) : <code>String</code> \| <code>Symbol</code>
-    * [~CPromiseExecutorFn](#module_CPromise..CPromiseExecutorFn) : <code>function</code>
-    * [~PromiseOptionsObject](#module_CPromise..PromiseOptionsObject) : <code>Object</code>
-    * [~CPromiseOptions](#module_CPromise..CPromiseOptions) : <code>PromiseOptionsObject</code> \| <code>String</code> \| <code>Number</code>
-    * [~OnCancelListener](#module_CPromise..OnCancelListener) : <code>function</code>
-    * [~OnPauseListener](#module_CPromise..OnPauseListener) : <code>function</code>
-    * [~OnResumeListener](#module_CPromise..OnResumeListener) : <code>function</code>
-    * [~AllOptions](#module_CPromise..AllOptions) : <code>object</code>
 
 <a name="module_CPromise..CPromise"></a>
 
