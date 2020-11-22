@@ -4,6 +4,23 @@
 ![npm bundle size](https://img.shields.io/bundlephobia/minzip/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
+## Table of contents
+- [SYNOPSIS](#synopsis-sparkles)
+- [Why](#why-question)
+- [Features](#features)
+- [Installation](#installation-hammer)
+- Examples:
+    - [cancellation & progress capturing](#progress-capturing-and-cancellation)
+    - [pause & resume promise](#pause--resume-promises)
+    - [concurrent limitation](#concurrency-limitation)
+    - [abortable fetch with timeout](#abortable-fetch-with-timeout)
+    - [wrapping axios request](#wrapping-axios-request)
+- [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
+- [Related projects](#related-projects) 
+- [API Reference](#api-reference)
+- [License](#license)   
+
+
 ## SYNOPSIS :sparkles:
 
 This library provides an advanced version of the built-in Promise by subclassing.
@@ -16,9 +33,84 @@ You might be interested in using it if you need the following features:
 
 In terms of the library **the cancellation means rejection with a special error subclass**.
 
+````javascript
+const chain= new CPromise((resolve, reject, {onCancel, onPause, onResume})=>{
+    onCancel(()=>{
+        //optionally some code here to abort your long-term task (abort request, stop timers etc.)
+    });
+}).then(console.log, console.warn);
+
+setTimeout(()=> chain.cancel(), 1000);
+````
+
+
+## Why :question:
+
+You may face with a challenge when you need to cancel some long-term asynchronous
+operation before it will be completed with success or failure, just because the result
+has lost its relevance to you.
+
+## Features
+- no dependencies (except [native] Promise)
+- built-in `AbortController` class
+- browser support
+- supports two ways to make your promise internal code cancellable: 
+    - `onCancel` callbacks (clear timers, abort requests)
+    - `signal` provided by the [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) (to wrap API like 
+[fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) method)
+- :fire: supports cancellation of the whole chain
+- :fire: supports generator to CPromise resolving (something similar like [co](https://www.npmjs.com/package/co) library does);
+- :fire: progress capturing support
+- `CPromise.all` supports concurrency limit
+- `CPromise.all` and `CPromise.race` methods have cancellation support, so the others nested pending promises will be canceled
+ when the result promise settled
+ - promise suspending (using `pause` and `resume` methods)
+ - custom signals (`emitSignal`)
+ - `delay` method to return promise that will be resolved with the value after timeout
+ - ability to set the `weight` for each promise in the chain to manage the impact on chain progress
+ - ability to attach meta info on each setting of the progress
+- `catch` method supports error class filtering
+
+## Installation :hammer:
+
+- Install for node.js using npm/yarn:
+
+```bash
+$ npm install c-promise2
+```
+
+```bash
+$ yarn add c-promise2
+```
+
+The package consists pre-built bundles for umd, cjs, mjs versions which can be found in the `./dist/` directory
+
+- Import the library:
+
+````javascript
+import CPromise from "c-promise2";
+// const CPromise = require("c-promise2"); // using require
+// import CPromise from "c-promise2/dev"; // development version
+    
+const chain= CPromise.delay(1000, 'It works!').then(message => console.log('Done', message));
+
+//chain.cancel();
+````
+As an alternative you can use any CDN with npn support:
+- [development UMD version with ](https://unpkg.com/c-promise2/dist/dev/c-promise.umd.js) 
+(additional error handling activated)
+
+- [production UMD version](https://unpkg.com/c-promise2) (or [minified](https://unpkg.com/c-promise2/dist/c-promise.umd.min.js) ~9KB)
+
+- [production CommonJS version](https://unpkg.com/c-promise2/dist/c-promise.cjs.js)
+
+- [production ESM version](https://unpkg.com/c-promise2/dist/c-promise.mjs)
+
+### Examples
+#### Progress capturing and cancellation
 Basic example ([Live demo](https://codesandbox.io/s/thirsty-taussig-3nqbp?file=/src/index.js)):
 ````javascript
-const CPromise = require("c-promise2");
+import CPromise from 'c-promise';
 
 const delay= (ms, value)=>{
   return new CPromise((resolve, reject, {onCancel}) => {
@@ -66,34 +158,54 @@ Failed: CanceledError: canceled
 Process finished with exit code 0
 ````
 
-## Why :question:
+#### Pause / resume promises
+See [the live demo](https://codesandbox.io/s/intelligent-bird-oe2n1?file=/src/index.js)
+````javascript
+import CPromise from 'c-promise';
 
-You may face with a challenge when you need to cancel some long-term asynchronous
-operation before it will be completed with success or failure, just because the result
-has lost its relevance to you.
+function cancelableDelay(ms, value){
+    return new CPromise(function(resolve, reject, {onCancel, onPause, onResume}){
+        let timestamp= Date.now();
+        let timeLeft;
+        let timer= setTimeout(resolve, ms, value);
+        onPause(()=>{
+            console.log(`Pause`);
+            clearTimeout(timer);
+            timer=0;
+            timeLeft= ms - (Date.now()- timestamp);
+            timestamp= Date.now();
+        });
 
-## Features
-- no dependencies (except [native] Promise)
-- built-in `AbortController` class
-- browser support
-- supports two ways to make your promise internal code cancellable: 
-    - `onCancel` callbacks (clear timers, abort requests)
-    - `signal` provided by the [AbortController](https://developer.mozilla.org/en-US/docs/Web/API/AbortController) (to wrap API like 
-[fetch](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch) method)
-- :fire: supports cancellation of the whole chain
-- :fire: supports generator to CPromise resolving (something similar like [co](https://www.npmjs.com/package/co) library does);
-- :fire: progress capturing support
-- `CPromise.all` supports concurrency limit
-- `CPromise.all` and `CPromise.race` methods have cancellation support, so the others nested pending promises will be canceled
- when the result promise settled
- - promise suspending (using `pause` and `resume` methods)
- - custom signals (`emitSignal`)
- - `delay` method to return promise that will be resolved with the value after timeout
- - ability to set the `weight` for each promise in the chain to manage the impact on chain progress
- - ability to attach meta info on each setting of the progress
-- `catch` method supports error class filtering
+        onResume(()=>{
+            console.log(`Resume`);
+            timer= setTimeout(resolve, timeLeft, value);
+        });
 
-## Live Examples
+        onCancel(()=>{
+            console.log(`Cancel`);
+            timer && clearTimeout(timer);
+        })
+    });
+}
+
+const chain= cancelableDelay(1000, 123)
+    .then(
+        value=> console.log(`Done:`, value),
+        err=> console.warn(`Fail: ${err}`)
+    );
+
+setTimeout(()=>{
+    chain.pause();
+
+    setTimeout(()=>{
+        chain.resume();
+    }, 5000);
+}, 100);
+
+
+````
+
+#### Abortable fetch with timeout
 
 This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain/c6njyrt9/10/)) with a timeout might look like
 ````javascript
@@ -112,6 +224,7 @@ setTimeout(()=> promise.cancel(), 1000);
 // you able to call cancel() at any time to cancel the entire chain at any stage
 // the related network request will also be aborted
 ````
+You can use the [cp-fetch package](https://www.npmjs.com/package/cp-fetch) which provides a CPromise wrapper for fetch API.
 
 - [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
 
@@ -121,6 +234,7 @@ setTimeout(()=> promise.cancel(), 1000);
 
 - [Using generator as a promise (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/mtcuf1nj/)
 
+#### Wrapping axios request
 - [Wrapping axios request (runkit.com)](https://runkit.com/digitalbrainjs/cancel-axios)
 
 ````javascript
@@ -134,7 +248,9 @@ function cancelableAxios(url){
     });
 }
 ````
-Concurrency limit:
+You can use the [cp-axios package](https://www.npmjs.com/package/cp-axios) to get Axios to work with CPromise.
+
+### Concurrency limitation:
 ````javascript
 import CPromise from "c-promise2";
 import cpFetch from "cp-fetch";
@@ -178,42 +294,7 @@ import cpFetch from "cp-fetch";
 })();
 ````
 
-## Installation :hammer:
-
-- Install for node.js using npm/yarn:
-
-```bash
-$ npm install c-promise2
-```
-
-```bash
-$ yarn add c-promise2
-```
-
-The package consists pre-built bundles for umd, cjs, mjs versions which can be found in the `./dist/` directory
-
-- Import the library:
-
-````javascript
-import CPromise from "c-promise2";
-// const CPromise = require("c-promise2"); // using require
-// import CPromise from "c-promise2/dev"; // development version
-    
-const chain= CPromise.delay(1000, 'It works!').then(message => console.log('Done', message));
-
-//chain.cancel();
-````
-As an alternative you can use any CDN with npn support:
-- [development UMD version with ](https://unpkg.com/c-promise2/dist/dev/c-promise.umd.js) 
-(additional error handling activated)
-
-- [production UMD version](https://unpkg.com/c-promise2) (or [minified](https://unpkg.com/c-promise2/dist/c-promise.umd.min.js) ~9KB)
-
-- [production CommonJS version](https://unpkg.com/c-promise2/dist/c-promise.cjs.js)
-
-- [production ESM version](https://unpkg.com/c-promise2/dist/c-promise.mjs)
-
-## Using Generators instead of ECMA async functions 
+## Using Generators as an alternative of ECMA async functions 
 Generally you can use CPromise with ES6 async functions, but if you need some specific functionality
 such as progress capturing or cancellation, you need to use generators instead of async functions to make it work.
 This is because the async function leads all the nested thenables into its own Promise class,

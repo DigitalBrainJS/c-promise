@@ -6,6 +6,20 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
+## [0.6.0] - 2020-11-20
+
+### Added
+- Added signals support;
+- Added pause / resume methods;
+- Added CPromise.allSettled method;
+- Added `examples` folder;
+
+### Removed
+- CPromiseScope - now every promise handler runs directly in the context of the Promise instance;
+
+### Updated
+- Refactored;
+
 ## [0.5.3] - 2020-10-16
 
 ### Added
