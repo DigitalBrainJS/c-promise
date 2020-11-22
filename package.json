@@ -89,6 +89,7 @@
     "yield",
     "race",
     "delay",
+    "suspending",
     "wait",
     "bluebird",
     "deferred",
@@ -96,6 +97,7 @@
     "aborting",
     "close",
     "closable",
+    "pause",
     "task",
     "p-cancelable"
   ],

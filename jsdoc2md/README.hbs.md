@@ -5,7 +5,14 @@
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
 ## SYNOPSIS :sparkles:
-A Promise class built on top of the native that supports some additional features such as cancellation, timeouts, progress capturing and concurrency limit. 
+
+This library provides an advanced version of the built-in Promise by subclassing.
+You might be interested in using it if you need the following features:
+- promise cancellation (including nested)
+- progress capturing
+- promise suspending
+- timeouts
+- concurrent limit for `all` and `allSettled` methods with `mapper` reducer
 
 In terms of the library **the cancellation means rejection with a special error subclass**.
 
@@ -79,6 +86,8 @@ has lost its relevance to you.
 - `CPromise.all` supports concurrency limit
 - `CPromise.all` and `CPromise.race` methods have cancellation support, so the others nested pending promises will be canceled
  when the result promise settled
+ - promise suspending (using `pause` and `resume` methods)
+ - custom signals (`emitSignal`)
  - `delay` method to return promise that will be resolved with the value after timeout
  - ability to set the `weight` for each promise in the chain to manage the impact on chain progress
  - ability to attach meta info on each setting of the progress
@@ -222,7 +231,7 @@ const promise= CPromise.from(function*(){
     yield [[CPromise.delay(1000), CPromise.delay(1500)]] // resolve chains using CPromise.race([...chains]);
     yield new CPromise(resolve=> resolve(true)); // any thenable object will be resolved 
     return "It works!";
-}, [1, 2, 3])
+})
 .progress(value=> console.log(`Progress: ${value}`))
 .then(message=> console.log(`Done: ${message}`));
 ````

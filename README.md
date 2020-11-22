@@ -5,7 +5,14 @@
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
 
 ## SYNOPSIS :sparkles:
-A Promise class built on top of the native that supports some additional features such as cancellation, timeouts, progress capturing and concurrency limit. 
+
+This library provides an advanced version of the built-in Promise by subclassing.
+You might be interested in using it if you need the following features:
+- promise cancellation (including nested)
+- progress capturing
+- promise suspending
+- timeouts
+- concurrent limit for `all` and `allSettled` methods with `mapper` reducer
 
 In terms of the library **the cancellation means rejection with a special error subclass**.
 
@@ -79,6 +86,8 @@ has lost its relevance to you.
 - `CPromise.all` supports concurrency limit
 - `CPromise.all` and `CPromise.race` methods have cancellation support, so the others nested pending promises will be canceled
  when the result promise settled
+ - promise suspending (using `pause` and `resume` methods)
+ - custom signals (`emitSignal`)
  - `delay` method to return promise that will be resolved with the value after timeout
  - ability to set the `weight` for each promise in the chain to manage the impact on chain progress
  - ability to attach meta info on each setting of the progress
@@ -222,7 +231,7 @@ const promise= CPromise.from(function*(){
     yield [[CPromise.delay(1000), CPromise.delay(1500)]] // resolve chains using CPromise.race([...chains]);
     yield new CPromise(resolve=> resolve(true)); // any thenable object will be resolved 
     return "It works!";
-}, [1, 2, 3])
+})
 .progress(value=> console.log(`Progress: ${value}`))
 .then(message=> console.log(`Done: ${message}`));
 ````
@@ -237,291 +246,53 @@ Cancellable Promise with extra features
 
 
 * [CPromise](#module_CPromise)
-    * [~CPromiseScope](#module_CPromise..CPromiseScope) ⇐ <code>TinyEventEmitter</code>
-        * [new CPromiseScope(resolve, reject, options)](#new_module_CPromise..CPromiseScope_new)
-        * _instance_
-            * [.signal](#module_CPromise..CPromiseScope+signal) : <code>AbortSignal</code>
-            * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
-            * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
-            * [.isCaptured](#module_CPromise..CPromiseScope+isCaptured) ⇒ <code>boolean</code>
-            * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
-            * [.totalWeight([weight])](#module_CPromise..CPromiseScope+totalWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-            * [.innerWeight([weight])](#module_CPromise..CPromiseScope+innerWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-            * [.progress(value, [data])](#module_CPromise..CPromiseScope+progress)
-            * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
-            * [.captureProgress([options])](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
-            * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
-            * [.timeout(ms)](#module_CPromise..CPromiseScope+timeout) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-            * [.weight(weight)](#module_CPromise..CPromiseScope+weight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-            * [.label(label)](#module_CPromise..CPromiseScope+label) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-            * [.resolve(value)](#module_CPromise..CPromiseScope+resolve)
-            * [.reject(err)](#module_CPromise..CPromiseScope+reject)
-            * [.done(err, value)](#module_CPromise..CPromiseScope+done)
-            * [.cancel([reason])](#module_CPromise..CPromiseScope+cancel)
-        * _static_
-            * [.execute(executor, resolve, reject, options)](#module_CPromise..CPromiseScope.execute) ⇒ <code>CPromiseScope</code>
     * [~CPromise](#module_CPromise..CPromise) ⇐ <code>Promise</code>
         * [new CPromise(executor, [options])](#new_module_CPromise..CPromise_new)
         * _instance_
+            * [.signal](#module_CPromise..CPromise+signal) : <code>AbortSignal</code>
             * [.isPending](#module_CPromise..CPromise+isPending) ⇒ <code>Boolean</code>
             * [.isCanceled](#module_CPromise..CPromise+isCanceled) ⇒ <code>Boolean</code>
-            * [.progress(listener)](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
-            * [.captureProgress(options)](#module_CPromise..CPromise+captureProgress) ⇒ <code>CPromise</code>
-            * [.cancel(reason)](#module_CPromise..CPromise+cancel) ⇒ <code>Boolean</code>
+            * [.isCaptured](#module_CPromise..CPromise+isCaptured) ⇒ <code>Boolean</code>
+            * [.isPaused](#module_CPromise..CPromise+isPaused) ⇒ <code>Boolean</code>
+            * [.parent](#module_CPromise..CPromise+parent) ⇒ <code>CPromise</code> \| <code>null</code>
+            * [.totalWeight([weight])](#module_CPromise..CPromise+totalWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
+            * [.innerWeight([weight])](#module_CPromise..CPromise+innerWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
+            * [.progress(value, [data])](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
+            * [.propagate(type, data)](#module_CPromise..CPromise+propagate) ⇒ <code>CPromise</code>
+            * [.captureProgress([options])](#module_CPromise..CPromise+captureProgress) ⇒ <code>CPromise</code>
+            * [.scopes()](#module_CPromise..CPromise+scopes) ⇒ <code>Array.&lt;CPromise&gt;</code>
+            * [.timeout([ms])](#module_CPromise..CPromise+timeout) ⇒ <code>Number</code> \| <code>CPromise</code>
+            * [.weight([weight])](#module_CPromise..CPromise+weight) ⇒ <code>Number</code> \| <code>CPromise</code>
+            * [.label([label])](#module_CPromise..CPromise+label) ⇒ <code>Number</code> \| <code>CPromise</code>
+            * [.resolve(value)](#module_CPromise..CPromise+resolve) ⇒ <code>CPromise</code>
+            * [.reject(err)](#module_CPromise..CPromise+reject) ⇒ <code>CPromise</code>
+            * [.pause()](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
+            * [.resume()](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
+            * [.cancel([reason])](#module_CPromise..CPromise+cancel)
+            * [.emitSignal(type, data)](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
             * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
             * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
             * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
+            * [.listenersCount(type)](#module_CPromise..CPromise+listenersCount) ⇒ <code>Number</code>
+            * [.hasListeners(type)](#module_CPromise..CPromise+hasListeners) ⇒ <code>Boolean</code>
+            * [.once(type, listener)](#module_CPromise..CPromise+once) ⇒ <code>CPromise</code>
+            * [.emit(type, ...args)](#module_CPromise..CPromise+emit) ⇒ <code>CPromise</code>
+            * [.emitHook(type, ...args)](#module_CPromise..CPromise+emitHook) ⇒ <code>Boolean</code>
         * _static_
             * [.isCanceledError(thing)](#module_CPromise..CPromise.isCanceledError) ⇒ <code>boolean</code>
             * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
             * [.all(iterable, options)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
             * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
+            * [.allSettled(iterable, options)](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
             * [.from(thing, [resolveSignatures])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
-    * [~PromiseScopeOptions](#module_CPromise..PromiseScopeOptions) : <code>Object</code>
-    * [~onFulfilled](#module_CPromise..onFulfilled) : <code>function</code>
-    * [~onRejected](#module_CPromise..onRejected) : <code>function</code>
-    * [~OnCancelListener](#module_CPromise..OnCancelListener) : <code>function</code>
+    * [~EventType](#module_CPromise..EventType) : <code>String</code> \| <code>Symbol</code>
     * [~CPromiseExecutorFn](#module_CPromise..CPromiseExecutorFn) : <code>function</code>
-    * [~CPromiseOptions](#module_CPromise..CPromiseOptions) : <code>PromiseScopeOptions</code> \| <code>String</code> \| <code>Number</code>
+    * [~PromiseOptionsObject](#module_CPromise..PromiseOptionsObject) : <code>Object</code>
+    * [~CPromiseOptions](#module_CPromise..CPromiseOptions) : <code>PromiseOptionsObject</code> \| <code>String</code> \| <code>Number</code>
+    * [~OnCancelListener](#module_CPromise..OnCancelListener) : <code>function</code>
+    * [~OnPauseListener](#module_CPromise..OnPauseListener) : <code>function</code>
+    * [~OnResumeListener](#module_CPromise..OnResumeListener) : <code>function</code>
     * [~AllOptions](#module_CPromise..AllOptions) : <code>object</code>
-
-<a name="module_CPromise..CPromiseScope"></a>
-
-### CPromise~CPromiseScope ⇐ <code>TinyEventEmitter</code>
-Scope for CPromises instances
-
-**Kind**: inner class of [<code>CPromise</code>](#module_CPromise)  
-**Extends**: <code>TinyEventEmitter</code>  
-
-* [~CPromiseScope](#module_CPromise..CPromiseScope) ⇐ <code>TinyEventEmitter</code>
-    * [new CPromiseScope(resolve, reject, options)](#new_module_CPromise..CPromiseScope_new)
-    * _instance_
-        * [.signal](#module_CPromise..CPromiseScope+signal) : <code>AbortSignal</code>
-        * [.isPending](#module_CPromise..CPromiseScope+isPending) ⇒ <code>Boolean</code>
-        * [.isCanceled](#module_CPromise..CPromiseScope+isCanceled) ⇒ <code>Boolean</code>
-        * [.isCaptured](#module_CPromise..CPromiseScope+isCaptured) ⇒ <code>boolean</code>
-        * [.onCancel(listener)](#module_CPromise..CPromiseScope+onCancel) ⇒ <code>CPromiseScope</code>
-        * [.totalWeight([weight])](#module_CPromise..CPromiseScope+totalWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-        * [.innerWeight([weight])](#module_CPromise..CPromiseScope+innerWeight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-        * [.progress(value, [data])](#module_CPromise..CPromiseScope+progress)
-        * [.propagate(type, data)](#module_CPromise..CPromiseScope+propagate) ⇒ <code>CPromiseScope</code>
-        * [.captureProgress([options])](#module_CPromise..CPromiseScope+captureProgress) ⇒ <code>CPromiseScope</code>
-        * [.scopes()](#module_CPromise..CPromiseScope+scopes) ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
-        * [.timeout(ms)](#module_CPromise..CPromiseScope+timeout) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-        * [.weight(weight)](#module_CPromise..CPromiseScope+weight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-        * [.label(label)](#module_CPromise..CPromiseScope+label) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-        * [.resolve(value)](#module_CPromise..CPromiseScope+resolve)
-        * [.reject(err)](#module_CPromise..CPromiseScope+reject)
-        * [.done(err, value)](#module_CPromise..CPromiseScope+done)
-        * [.cancel([reason])](#module_CPromise..CPromiseScope+cancel)
-    * _static_
-        * [.execute(executor, resolve, reject, options)](#module_CPromise..CPromiseScope.execute) ⇒ <code>CPromiseScope</code>
-
-<a name="new_module_CPromise..CPromiseScope_new"></a>
-
-#### new CPromiseScope(resolve, reject, options)
-Constructs PromiseScope instance
-
-
-| Param | Type |
-| --- | --- |
-| resolve | <code>function</code> | 
-| reject | <code>function</code> | 
-| options | <code>PromiseScopeOptions</code> | 
-
-<a name="module_CPromise..CPromiseScope+signal"></a>
-
-#### cPromiseScope.signal : <code>AbortSignal</code>
-get promise abort signal object
-
-**Kind**: instance property of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-<a name="module_CPromise..CPromiseScope+isPending"></a>
-
-#### cPromiseScope.isPending ⇒ <code>Boolean</code>
-indicates if the promise is pending
-
-**Kind**: instance property of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-<a name="module_CPromise..CPromiseScope+isCanceled"></a>
-
-#### cPromiseScope.isCanceled ⇒ <code>Boolean</code>
-indicates if the promise is pending
-
-**Kind**: instance property of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-<a name="module_CPromise..CPromiseScope+isCaptured"></a>
-
-#### cPromiseScope.isCaptured ⇒ <code>boolean</code>
-indicates if the promise progress is captured
-
-**Kind**: instance property of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-<a name="module_CPromise..CPromiseScope+onCancel"></a>
-
-#### cPromiseScope.onCancel(listener) ⇒ <code>CPromiseScope</code>
-registers the listener for cancel event
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type |
-| --- | --- |
-| listener | <code>OnCancelListener</code> | 
-
-<a name="module_CPromise..CPromiseScope+totalWeight"></a>
-
-#### cPromiseScope.totalWeight([weight]) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-Set or get the total weight of the inner chains
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type |
-| --- | --- |
-| [weight] | <code>Number</code> | 
-
-<a name="module_CPromise..CPromiseScope+innerWeight"></a>
-
-#### cPromiseScope.innerWeight([weight]) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-Set or get the total weight of the inner chains
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type |
-| --- | --- |
-| [weight] | <code>Number</code> | 
-
-<a name="module_CPromise..CPromiseScope+progress"></a>
-
-#### cPromiseScope.progress(value, [data])
-Set promise progress
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| value | <code>Number</code> | a number between [0, 1] |
-| [data] | <code>\*</code> | any data to send for progress event listeners |
-
-<a name="module_CPromise..CPromiseScope+propagate"></a>
-
-#### cPromiseScope.propagate(type, data) ⇒ <code>CPromiseScope</code>
-emit propagate event that will propagate through each promise scope in the chain (bubbling)
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type | Default | Description |
-| --- | --- | --- | --- |
-| type | <code>String</code> \| <code>symbol</code> |  | some type to identify the data kind |
-| data | <code>\*</code> | <code></code> | some data |
-
-<a name="module_CPromise..CPromiseScope+captureProgress"></a>
-
-#### cPromiseScope.captureProgress([options]) ⇒ <code>CPromiseScope</code>
-capture initial progress state of the chain
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| [options] | <code>Object</code> |  |
-| options.throttle | <code>Number</code> | set min interval for firing progress event |
-| options.innerWeight | <code>Number</code> | set weight of the nested promises |
-
-<a name="module_CPromise..CPromiseScope+scopes"></a>
-
-#### cPromiseScope.scopes() ⇒ <code>Array.&lt;CPromiseScope&gt;</code>
-Returns all parent scopes that are in pending state
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-<a name="module_CPromise..CPromiseScope+timeout"></a>
-
-#### cPromiseScope.timeout(ms) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-timeout before the promise will be canceled
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| ms | <code>Number</code> | timeout in ms |
-
-<a name="module_CPromise..CPromiseScope+weight"></a>
-
-#### cPromiseScope.weight(weight) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-Sets the promise weight in progress capturing process
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-**Returns**: <code>Number</code> \| <code>CPromiseScope</code> - returns weight if no arguments were specified  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| weight | <code>Number</code> | any number greater or equal 0 |
-
-<a name="module_CPromise..CPromiseScope+label"></a>
-
-#### cPromiseScope.label(label) ⇒ <code>Number</code> \| <code>CPromiseScope</code>
-Sets the promise label
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-**Returns**: <code>Number</code> \| <code>CPromiseScope</code> - returns weight if no arguments were specified  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| label | <code>String</code> | any string |
-
-<a name="module_CPromise..CPromiseScope+resolve"></a>
-
-#### cPromiseScope.resolve(value)
-Resolves the promise with given value
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param |
-| --- |
-| value | 
-
-<a name="module_CPromise..CPromiseScope+reject"></a>
-
-#### cPromiseScope.reject(err)
-Rejects the promise with given error
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param |
-| --- |
-| err | 
-
-<a name="module_CPromise..CPromiseScope+done"></a>
-
-#### cPromiseScope.done(err, value)
-Resolves or rejects the promise depending on the arguments
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| err |  | error object, if specified the promise will be rejected with this error, resolves otherwise |
-| value | <code>\*</code> |  |
-
-<a name="module_CPromise..CPromiseScope+cancel"></a>
-
-#### cPromiseScope.cancel([reason])
-throws the CanceledError that cause promise chain cancellation
-
-**Kind**: instance method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type |
-| --- | --- |
-| [reason] | <code>String</code> \| <code>Error</code> | 
-
-<a name="module_CPromise..CPromiseScope.execute"></a>
-
-#### CPromiseScope.execute(executor, resolve, reject, options) ⇒ <code>CPromiseScope</code>
-Executes the promise executor in the PromiseScope context
-
-**Kind**: static method of [<code>CPromiseScope</code>](#module_CPromise..CPromiseScope)  
-
-| Param | Type |
-| --- | --- |
-| executor | <code>CPromiseExecutorFn</code> | 
-| resolve | <code>function</code> | 
-| reject | <code>function</code> | 
-| options | <code>Object</code> | 
 
 <a name="module_CPromise..CPromise"></a>
 
@@ -534,19 +305,41 @@ CPromise class
 * [~CPromise](#module_CPromise..CPromise) ⇐ <code>Promise</code>
     * [new CPromise(executor, [options])](#new_module_CPromise..CPromise_new)
     * _instance_
+        * [.signal](#module_CPromise..CPromise+signal) : <code>AbortSignal</code>
         * [.isPending](#module_CPromise..CPromise+isPending) ⇒ <code>Boolean</code>
         * [.isCanceled](#module_CPromise..CPromise+isCanceled) ⇒ <code>Boolean</code>
-        * [.progress(listener)](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
-        * [.captureProgress(options)](#module_CPromise..CPromise+captureProgress) ⇒ <code>CPromise</code>
-        * [.cancel(reason)](#module_CPromise..CPromise+cancel) ⇒ <code>Boolean</code>
+        * [.isCaptured](#module_CPromise..CPromise+isCaptured) ⇒ <code>Boolean</code>
+        * [.isPaused](#module_CPromise..CPromise+isPaused) ⇒ <code>Boolean</code>
+        * [.parent](#module_CPromise..CPromise+parent) ⇒ <code>CPromise</code> \| <code>null</code>
+        * [.totalWeight([weight])](#module_CPromise..CPromise+totalWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
+        * [.innerWeight([weight])](#module_CPromise..CPromise+innerWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
+        * [.progress(value, [data])](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
+        * [.propagate(type, data)](#module_CPromise..CPromise+propagate) ⇒ <code>CPromise</code>
+        * [.captureProgress([options])](#module_CPromise..CPromise+captureProgress) ⇒ <code>CPromise</code>
+        * [.scopes()](#module_CPromise..CPromise+scopes) ⇒ <code>Array.&lt;CPromise&gt;</code>
+        * [.timeout([ms])](#module_CPromise..CPromise+timeout) ⇒ <code>Number</code> \| <code>CPromise</code>
+        * [.weight([weight])](#module_CPromise..CPromise+weight) ⇒ <code>Number</code> \| <code>CPromise</code>
+        * [.label([label])](#module_CPromise..CPromise+label) ⇒ <code>Number</code> \| <code>CPromise</code>
+        * [.resolve(value)](#module_CPromise..CPromise+resolve) ⇒ <code>CPromise</code>
+        * [.reject(err)](#module_CPromise..CPromise+reject) ⇒ <code>CPromise</code>
+        * [.pause()](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
+        * [.resume()](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
+        * [.cancel([reason])](#module_CPromise..CPromise+cancel)
+        * [.emitSignal(type, data)](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
         * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
+        * [.listenersCount(type)](#module_CPromise..CPromise+listenersCount) ⇒ <code>Number</code>
+        * [.hasListeners(type)](#module_CPromise..CPromise+hasListeners) ⇒ <code>Boolean</code>
+        * [.once(type, listener)](#module_CPromise..CPromise+once) ⇒ <code>CPromise</code>
+        * [.emit(type, ...args)](#module_CPromise..CPromise+emit) ⇒ <code>CPromise</code>
+        * [.emitHook(type, ...args)](#module_CPromise..CPromise+emitHook) ⇒ <code>Boolean</code>
     * _static_
         * [.isCanceledError(thing)](#module_CPromise..CPromise.isCanceledError) ⇒ <code>boolean</code>
         * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
         * [.all(iterable, options)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
+        * [.allSettled(iterable, options)](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
         * [.from(thing, [resolveSignatures])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
 
 <a name="new_module_CPromise..CPromise_new"></a>
@@ -560,6 +353,12 @@ Constructs new CPromise instance
 | executor | <code>CPromiseExecutorFn</code> | promise executor function that will be invoked in the context of the new CPromiseScope instance |
 | [options] | <code>CPromiseOptions</code> |  |
 
+<a name="module_CPromise..CPromise+signal"></a>
+
+#### cPromise.signal : <code>AbortSignal</code>
+get promise abort signal object
+
+**Kind**: instance property of [<code>CPromise</code>](#module_CPromise..CPromise)  
 <a name="module_CPromise..CPromise+isPending"></a>
 
 #### cPromise.isPending ⇒ <code>Boolean</code>
@@ -569,43 +368,183 @@ indicates if the promise is pending
 <a name="module_CPromise..CPromise+isCanceled"></a>
 
 #### cPromise.isCanceled ⇒ <code>Boolean</code>
-indicates if promise has been canceled
+indicates if the promise is pending
 
 **Kind**: instance property of [<code>CPromise</code>](#module_CPromise..CPromise)  
-<a name="module_CPromise..CPromise+progress"></a>
+<a name="module_CPromise..CPromise+isCaptured"></a>
 
-#### cPromise.progress(listener) ⇒ <code>Number</code> \| <code>CPromise</code>
-returns chains progress synchronously or adds a progress event listener if the argument was specified
+#### cPromise.isCaptured ⇒ <code>Boolean</code>
+indicates if the promise progress is captured
+
+**Kind**: instance property of [<code>CPromise</code>](#module_CPromise..CPromise)  
+<a name="module_CPromise..CPromise+isPaused"></a>
+
+#### cPromise.isPaused ⇒ <code>Boolean</code>
+indicates if the promise is paused
+
+**Kind**: instance property of [<code>CPromise</code>](#module_CPromise..CPromise)  
+<a name="module_CPromise..CPromise+parent"></a>
+
+#### cPromise.parent ⇒ <code>CPromise</code> \| <code>null</code>
+get parent promise
+
+**Kind**: instance property of [<code>CPromise</code>](#module_CPromise..CPromise)  
+<a name="module_CPromise..CPromise+totalWeight"></a>
+
+#### cPromise.totalWeight([weight]) ⇒ <code>Number</code> \| <code>CPromise</code>
+Set or get the total weight of the inner chains
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
 | Param | Type |
 | --- | --- |
-| listener | <code>function</code> | 
+| [weight] | <code>Number</code> | 
+
+<a name="module_CPromise..CPromise+innerWeight"></a>
+
+#### cPromise.innerWeight([weight]) ⇒ <code>Number</code> \| <code>CPromise</code>
+Set or get the total weight of the inner chains
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| [weight] | <code>Number</code> | 
+
+<a name="module_CPromise..CPromise+progress"></a>
+
+#### cPromise.progress(value, [data]) ⇒ <code>Number</code> \| <code>CPromise</code>
+Set promise progress
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| value | <code>Number</code> | a number between [0, 1] |
+| [data] | <code>\*</code> | any data to send for progress event listeners |
+
+<a name="module_CPromise..CPromise+propagate"></a>
+
+#### cPromise.propagate(type, data) ⇒ <code>CPromise</code>
+emit propagate event that will propagate through each promise scope in the chain (bubbling)
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| type | <code>String</code> \| <code>symbol</code> |  | some type to identify the data kind |
+| data | <code>\*</code> | <code></code> | some data |
 
 <a name="module_CPromise..CPromise+captureProgress"></a>
 
-#### cPromise.captureProgress(options) ⇒ <code>CPromise</code>
+#### cPromise.captureProgress([options]) ⇒ <code>CPromise</code>
 capture initial progress state of the chain
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
-| Param | Type |
-| --- | --- |
-| options | <code>Object</code> | 
-| options.throttle | <code>Number</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| [options] | <code>Object</code> |  |
+| options.throttle | <code>Number</code> | set min interval for firing progress event |
+| options.innerWeight | <code>Number</code> | set weight of the nested promises |
 
-<a name="module_CPromise..CPromise+cancel"></a>
+<a name="module_CPromise..CPromise+scopes"></a>
 
-#### cPromise.cancel(reason) ⇒ <code>Boolean</code>
-cancel the promise chain with specified reason
+#### cPromise.scopes() ⇒ <code>Array.&lt;CPromise&gt;</code>
+Returns all parent scopes that are in pending state
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
-**Returns**: <code>Boolean</code> - true if success  
+<a name="module_CPromise..CPromise+timeout"></a>
+
+#### cPromise.timeout([ms]) ⇒ <code>Number</code> \| <code>CPromise</code>
+timeout before the promise will be canceled
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [ms] | <code>Number</code> | timeout in ms |
+
+<a name="module_CPromise..CPromise+weight"></a>
+
+#### cPromise.weight([weight]) ⇒ <code>Number</code> \| <code>CPromise</code>
+Sets the promise weight in progress capturing process
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+**Returns**: <code>Number</code> \| <code>CPromise</code> - returns weight if no arguments were specified  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [weight] | <code>Number</code> | any number greater or equal 0 |
+
+<a name="module_CPromise..CPromise+label"></a>
+
+#### cPromise.label([label]) ⇒ <code>Number</code> \| <code>CPromise</code>
+Sets the promise label
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+**Returns**: <code>Number</code> \| <code>CPromise</code> - returns weight if no arguments were specified  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| [label] | <code>String</code> | any string |
+
+<a name="module_CPromise..CPromise+resolve"></a>
+
+#### cPromise.resolve(value) ⇒ <code>CPromise</code>
+Resolves the promise with given value
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param |
+| --- |
+| value | 
+
+<a name="module_CPromise..CPromise+reject"></a>
+
+#### cPromise.reject(err) ⇒ <code>CPromise</code>
+Rejects the promise with given error
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param |
+| --- |
+| err | 
+
+<a name="module_CPromise..CPromise+pause"></a>
+
+#### cPromise.pause() ⇒ <code>Boolean</code>
+Pause promise
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+<a name="module_CPromise..CPromise+resume"></a>
+
+#### cPromise.resume() ⇒ <code>Boolean</code>
+Resume promise
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+<a name="module_CPromise..CPromise+cancel"></a>
+
+#### cPromise.cancel([reason])
+throws the CanceledError that cause promise chain cancellation
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
 | Param | Type |
 | --- | --- |
-| reason | <code>String</code> | 
+| [reason] | <code>String</code> \| <code>Error</code> | 
+
+<a name="module_CPromise..CPromise+emitSignal"></a>
+
+#### cPromise.emitSignal(type, data) ⇒ <code>Boolean</code>
+Emit a signal of the specific type
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| type | <code>String</code> \| <code>Symbol</code> | 
+| data | <code>\*</code> | 
 
 <a name="module_CPromise..CPromise+delay"></a>
 
@@ -641,6 +580,65 @@ Catches rejection with optionally specified Error class
 | --- | --- |
 | onRejected | <code>function</code> | 
 | [filter] | <code>Error</code> | 
+
+<a name="module_CPromise..CPromise+listenersCount"></a>
+
+#### cPromise.listenersCount(type) ⇒ <code>Number</code>
+returns listeners count of the specific event type
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| type | <code>EventType</code> | 
+
+<a name="module_CPromise..CPromise+hasListeners"></a>
+
+#### cPromise.hasListeners(type) ⇒ <code>Boolean</code>
+checks if there are listeners of a specific type
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| type | <code>String</code> \| <code>Symbol</code> | 
+
+<a name="module_CPromise..CPromise+once"></a>
+
+#### cPromise.once(type, listener) ⇒ <code>CPromise</code>
+add 'once' listener
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| type | <code>EventType</code> | 
+| listener | <code>function</code> | 
+
+<a name="module_CPromise..CPromise+emit"></a>
+
+#### cPromise.emit(type, ...args) ⇒ <code>CPromise</code>
+emits the event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| type | <code>EventType</code> | 
+| ...args |  | 
+
+<a name="module_CPromise..CPromise+emitHook"></a>
+
+#### cPromise.emitHook(type, ...args) ⇒ <code>Boolean</code>
+emits the hook event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+**Returns**: <code>Boolean</code> - - false if some listener returned false  
+
+| Param | Type |
+| --- | --- |
+| type | <code>EventType</code> | 
+| ...args |  | 
 
 <a name="module_CPromise..CPromise.isCanceledError"></a>
 
@@ -692,6 +690,18 @@ returns a promise that fulfills or rejects as soon as one of the promises in an 
 | --- | --- |
 | thenables | <code>Iterable</code> | 
 
+<a name="module_CPromise..CPromise.allSettled"></a>
+
+#### CPromise.allSettled(iterable, options) ⇒ <code>CPromise</code>
+returns a promise that resolves after all of the given promises have either fulfilled or rejected
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| iterable | <code>Iterable</code> \| <code>Generator</code> \| <code>GeneratorFunction</code> | 
+| options | <code>AllOptions</code> | 
+
 <a name="module_CPromise..CPromise.from"></a>
 
 #### CPromise.from(thing, [resolveSignatures]) ⇒ <code>CPromise</code>
@@ -704,41 +714,40 @@ Converts thing to CPromise using the following rules:- CPromise instance return
 | thing | <code>\*</code> |  | 
 | [resolveSignatures] | <code>boolean</code> | <code>true</code> | 
 
-<a name="module_CPromise..PromiseScopeOptions"></a>
+<a name="module_CPromise..EventType"></a>
 
-### CPromise~PromiseScopeOptions : <code>Object</code>
+### CPromise~EventType : <code>String</code> \| <code>Symbol</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise..CPromiseExecutorFn"></a>
+
+### CPromise~CPromiseExecutorFn : <code>function</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+**this**: <code>CPromise</code>  
+
+| Param | Type |
+| --- | --- |
+| resolve | <code>function</code> | 
+| reject | <code>function</code> | 
+| scope | <code>CPromise</code> | 
+
+<a name="module_CPromise..PromiseOptionsObject"></a>
+
+### CPromise~PromiseOptionsObject : <code>Object</code>
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 **Properties**
 
-| Name | Type | Default | Description |
-| --- | --- | --- | --- |
-| label | <code>String</code> |  | the label for the promise |
-| weight | <code>Number</code> | <code>1</code> | the progress weight of the promise |
-| timeout | <code>Number</code> | <code>0</code> | max pending time |
-| signal | <code>AbortSignal</code> |  | AbortController signal |
-
-<a name="module_CPromise..onFulfilled"></a>
-
-### CPromise~onFulfilled : <code>function</code>
-**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
-**this**: <code>CPromiseScope</code>  
-
-| Param | Type |
+| Name | Type |
 | --- | --- |
-| value |  | 
-| scope | <code>CPromiseScope</code> | 
+| label | <code>String</code> | 
+| timeout | <code>Number</code> | 
+| weight | <code>Number</code> | 
 
-<a name="module_CPromise..onRejected"></a>
+<a name="module_CPromise..CPromiseOptions"></a>
 
-### CPromise~onRejected : <code>function</code>
+### CPromise~CPromiseOptions : <code>PromiseOptionsObject</code> \| <code>String</code> \| <code>Number</code>
+If value is a number it will be considered as the value for timeout optionIf value is a string it will be considered as a label
+
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
-**this**: <code>CPromiseScope</code>  
-
-| Param | Type |
-| --- | --- |
-| err |  | 
-| scope | <code>CPromiseScope</code> | 
-
 <a name="module_CPromise..OnCancelListener"></a>
 
 ### CPromise~OnCancelListener : <code>function</code>
@@ -748,23 +757,13 @@ Converts thing to CPromise using the following rules:- CPromise instance return
 | --- | --- |
 | reason | <code>CanceledError</code> | 
 
-<a name="module_CPromise..CPromiseExecutorFn"></a>
+<a name="module_CPromise..OnPauseListener"></a>
 
-### CPromise~CPromiseExecutorFn : <code>function</code>
+### CPromise~OnPauseListener : <code>function</code>
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
-**this**: <code>CPromiseScope</code>  
+<a name="module_CPromise..OnResumeListener"></a>
 
-| Param | Type |
-| --- | --- |
-| resolve | <code>function</code> | 
-| reject | <code>function</code> | 
-| scope | <code>CPromiseScope</code> | 
-
-<a name="module_CPromise..CPromiseOptions"></a>
-
-### CPromise~CPromiseOptions : <code>PromiseScopeOptions</code> \| <code>String</code> \| <code>Number</code>
-If value is a number it will be considered as the value for timeout optionIf value is a string it will be considered as a label
-
+### CPromise~OnResumeListener : <code>function</code>
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 <a name="module_CPromise..AllOptions"></a>
 

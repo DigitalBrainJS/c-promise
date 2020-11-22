@@ -43,7 +43,7 @@ module.exports = {
         })
     },
 
-    'prototype.cancel()': {
+    'cancellation': {
         'should reject the promise with CanceledError': async function () {
             const promise = new CPromise((resolve, reject) => {
                 setTimeout(resolve, 1000, 123);
@@ -111,9 +111,38 @@ module.exports = {
                 }
                 throw err;
             });
-        }
+        },
+
+        'throwing the CanceledError inside the promise': {
+            "should lead to chains cancellation": async function () {
+                let canceled = false;
+                let signaled = false;
+
+                return CPromise.delay(10, 123).then((value, {signal, onCancel}) => {
+                    onCancel((reason) => {
+                        assert.equal(reason.message, 'test');
+                        canceled = true;
+                    });
+
+                    signal.addEventListener('abort', () => {
+                        signaled = true;
+                    })
+
+                    return CPromise.delay(20).then(() => {
+                        throw new CPromise.CanceledError('test');
+                    });
+                }).then(() => {
+                    assert.fail("has not been rejected");
+                }, (err) => {
+                    assert.equal(err.message, 'test');
+                    assert.ok(canceled, "not cancelled");
+                    assert.ok(signaled, "not signaled");
+                    assert.ok(err instanceof CPromise.CanceledError);
+                })
+            }
+        },
     },
-    'prototype.progress': {
+    'progress capturing': {
         'should return correct chain progress': async function () {
             const chain = delay(100)
                 .then(() => {
@@ -143,33 +172,36 @@ module.exports = {
             })
         }
     },
-
-    "throwing the CanceledError inside the promise": {
-        "should lead to chains cancellation": async function () {
-            let canceled = false;
-            let signaled = false;
-
-            return CPromise.delay(10, 123).then((value, {signal, onCancel}) => {
-                onCancel((reason) => {
-                    assert.equal(reason.message, 'test');
-                    canceled = true;
+    'suspension': {
+        'should support pause and resume methods': async function() {
+            let timestamp = Date.now();
+            let pauseEmitted, resumeEmitted;
+            const passed = () => {
+                return Date.now() - timestamp;
+            }
+            const chain = new CPromise((resolve, reject, {onPause, onResume}) => {
+                setTimeout(resolve, 500);
+                onPause(() => {
+                    pauseEmitted = true;
                 });
 
-                signal.addEventListener('abort', () => {
-                    signaled = true;
-                })
-
-                return CPromise.delay(20).then(() => {
-                    throw new CPromise.CanceledError('test');
+                onResume(() => {
+                    resumeEmitted = true;
                 });
             }).then(() => {
-                assert.fail("has not been rejected");
-            }, (err) => {
-                assert.equal(err.message, 'test');
-                assert.ok(canceled, "not cancelled");
-                assert.ok(signaled, "not signaled");
-                assert.ok(err instanceof CPromise.CanceledError);
-            })
+                assert.ok(passed() > 1200, `early completion (${passed()}ms)`);
+                assert.ok(pauseEmitted, 'pause event has not been emitted');
+                assert.ok(resumeEmitted, 'resume event has not been emitted');
+            });
+
+            setTimeout(() => {
+                chain.pause();
+                setTimeout(() => {
+                    chain.resume();
+                }, 1000);
+            }, 300);
+
+            return chain;
         }
     },
 
@@ -190,7 +222,63 @@ module.exports = {
         }
     },
 
-    'from': {
+    'CPromise#Symbol(toCPromise)': {
+        'should be invoked to convert the object to an CPromise instance': async function () {
+            const toCPromise = Symbol.for('toCPromise');
+            let invoked = false;
+            const obj = {
+                [toCPromise]: function (CPromise) {
+                    invoked = true;
+                    return new CPromise((resolve) => resolve(123));
+                }
+            };
+
+            const promise = CPromise.from(obj);
+
+            assert.ok(invoked);
+            assert.ok(promise instanceof CPromise);
+
+            return promise.then(value => {
+                assert.equal(value, 123);
+            })
+        }
+    },
+
+    'CPromise#setProgress()': {
+        'should set the value of the promise progress': function (done) {
+            const p = new CPromise(function (resolve, reject) {
+                let progress = 0;
+                let i = 0;
+                const timer = setInterval(() => {
+                    progress += 0.2;
+                    this.progress(progress, {description: 'test', value: i++});
+                    if (progress >= 1) {
+                        clearInterval(timer);
+                        resolve('done');
+                    }
+
+                }, 10);
+            });
+
+            const expect = [0.2, 0.4, 0.6, 0.8, 1];
+            let index = 0;
+
+            p.on('progress', (actualProgress, scope, data) => {
+                const expected = expect[index];
+
+                assert.equal(actualProgress, expected);
+                assert.deepStrictEqual(data, {description: 'test', value: index});
+                index++;
+            })
+
+            p.then(result => {
+                assert.equal(result, 'done');
+                done();
+            }).catch(done);
+        }
+    },
+
+    'CPromise.from': {
         'should convert thing to a CPromise instance': async function () {
             let isCanceled = false;
             const thenable = {
@@ -253,7 +341,8 @@ module.exports = {
                 const delay = (ms) => new CPromise((resolve, reject, {onCancel}) => {
                     onCancel(() => {
                         canceledInternals = true;
-                    })
+                    });
+                    setTimeout(resolve, ms);
                 });
 
                 const chain = CPromise.from(function* () {
@@ -262,13 +351,14 @@ module.exports = {
                         yield delay(100);
                     } catch (err) {
                         thrown = true;
-                        assert.ok(err instanceof CanceledError);
+                        assert.ok(err instanceof CanceledError, 'error is not an instanceof CanceledError');
                     }
+
+                    yield CPromise.delay(100);
 
                     if (!thrown) {
                         assert.fail('The canceled error was not thrown');
                     }
-
                 });
 
                 setTimeout(() => {
@@ -296,7 +386,8 @@ module.exports = {
             }
         }
     },
-    'all': {
+
+    'CPromise.all': {
         'should resolved with array of inner chain vales': async function () {
             const v1 = 123;
             const v2 = 456;
@@ -355,7 +446,8 @@ module.exports = {
             })
         }
     },
-    'race': {
+
+    'CPromise.race': {
         'should return a promise that fulfills or rejects as soon as one of the promises settled': async function () {
             const v1 = 123;
             const v2 = 456;
@@ -381,25 +473,68 @@ module.exports = {
             });
         }
     },
-    'method Symbol(toCPromise)': {
-        'should be invoked to convert the object to an CPromise instance': async function () {
-            const toCPromise = Symbol.for('toCPromise');
-            let invoked = false;
-            const obj = {
-                [toCPromise]: function (CPromise) {
-                    invoked = true;
-                    return new CPromise((resolve) => resolve(123));
-                }
-            };
 
-            const promise = CPromise.from(obj);
+    'CPromise.allSettled': async function(){
+        const err= new Error('test1');
+        return CPromise.allSettled([
+            delay(100, 123),
+            CPromise.reject(err),
+            CPromise.resolve(456)
+        ]).then(results=>{
+            assert.deepStrictEqual(results, [
+                {status: 'fulfilled', value: 123},
+                {status: 'rejected', reason: err},
+                {status: 'fulfilled', value: 456}
+            ]);
+        })
+    },
 
-            assert.ok(invoked);
-            assert.ok(promise instanceof CPromise);
-
-            return promise.then(value => {
-                assert.equal(value, 123);
-            })
+    'CPromise.on': {
+        'should add new listener': function () {
+            const ee= new CPromise(resolve=>{});
+            assert.equal(ee.listenersCount('test'), 0);
+            ee.on('test', function(){});
+            assert.equal(ee.listenersCount('test'), 1);
+            ee.on('test', function(){});
+            assert.equal(ee.listenersCount('test'), 2);
         }
-    }
+    },
+
+    'CPromise.off': {
+        'should remove the listener': function () {
+            const ee= new CPromise(resolve=>{});
+            const listener1= function(){};
+            const listener2= function(){};
+            ee.on('test', listener1);
+            assert.equal(ee.listenersCount('test'), 1);
+            ee.on('test', listener2);
+            assert.equal(ee.listenersCount('test'), 2);
+            ee.off('test', listener1);
+            assert.equal(ee.listenersCount('test'), 1);
+            ee.off('test', listener2);
+            assert.equal(ee.listenersCount('test'), 0);
+        }
+    },
+
+    'CPromise.emit': {
+        'should emit the event listeners': function () {
+            const ee= new CPromise(resolve=>{});
+            let invoked1, invoked2;
+            const listener1= function(...data){
+                invoked1= true;
+                assert.deepStrictEqual(data, [1, 2, 3]);
+            };
+            const listener2= function(...data){
+                invoked2= true;
+                assert.deepStrictEqual(data, [1, 2, 3]);
+            };
+            ee.on('test', listener1);
+            ee.on('test', listener2);
+
+            ee.emit('test', 1, 2, 3);
+
+            assert.ok(invoked1);
+            assert.ok(invoked2);
+        }
+    },
 };
