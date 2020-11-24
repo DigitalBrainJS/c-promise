@@ -6,6 +6,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
+## [0.7.0] - 2020-11-24
+
+### Added
+- prepend option for the `on` method;
+- handler param for ths `emitSignal` method;
+- an example of using signals;
+
+### Updated
+- reworked signal system;
+
 ## [0.6.0] - 2020-11-20
 
 ### Added
