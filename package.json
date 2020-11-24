@@ -1,7 +1,7 @@
 {
   "name": "c-promise2",
   "version": "0.6.1",
-  "description": "Promise with cancellation, progress capturing and other extra features.",
+  "description": "Promise with cancellation, timeouts, progress capturing, suspending and user signals support",
   "author": {
     "name": "Dmitriy Mozgovoy",
     "email": "robotshara@gmail.com",

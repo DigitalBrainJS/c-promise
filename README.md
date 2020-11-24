@@ -15,6 +15,7 @@
     - [concurrent limitation](#concurrency-limitation)
     - [abortable fetch with timeout](#abortable-fetch-with-timeout)
     - [wrapping axios request](#wrapping-axios-request)
+- [Signals handling](#signals-handling)
 - [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
 - [Related projects](#related-projects) 
 - [API Reference](#api-reference)
@@ -38,18 +39,15 @@ const promise= new CPromise((resolve, reject, {onCancel, onPause, onResume})=>{
     onCancel(()=>{
         //optionally some code here to abort your long-term task (abort request, stop timers etc.)
     });
-}).then(console.log, console.warn);
-
-console.log('isPromise:', promise instanceof Promise); // true
-
-(async()=>{
-    try {
-        console.log(`Done: `, await promise);
-    }catch(err){
+}).then(
+    value => console.log(`Done: ${value}`), 
+    err => {
         console.warn(`Failed: ${err}`); // Failed: CanceledError: canceled
         console.log('isCanceled:', promise.isCanceled); // true
     }
-})()
+);
+
+console.log('isPromise:', promise instanceof Promise); // true
 
 setTimeout(()=> promise.cancel(), 1000);
 ````
@@ -57,7 +55,7 @@ setTimeout(()=> promise.cancel(), 1000);
 
 ## Why :question:
 
-You may face with a challenge when you need to cancel some long-term asynchronous
+You may run into a problem when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
 
@@ -239,7 +237,7 @@ You can use the [cp-fetch package](https://www.npmjs.com/package/cp-fetch) which
 
 - [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
 
-<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
+![alt text](https://github.com/DigitalBrainsJS/c-promise/blob/master/public/demo.gif?raw=true)
 
 - [Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
 
@@ -305,6 +303,44 @@ import cpFetch from "cp-fetch";
 })();
 ````
 
+## Signals handling
+Every CPromise instance could handle "signals", emitted using `emitSignal` method. 
+The method emits `signal` event on each pending promise in the chain until some handler returns `true` as the result.
+This method is used internally for predefined system signals for cancellation and suspending actions.
+
+[Live demo](https://codesandbox.io/s/dank-https-sqruh?file=/src/index.js)
+````javascript
+const CPromise= require('../lib/c-promise');
+
+const chain= new CPromise((resolve, reject, scope)=>{
+    scope.on('signal', (type, data) => {
+        if (type === 'inc') { // ignore other signal types
+            console.log(`Signal ${type} handled`);
+            resolve(data.x + 1);
+            return true; // we accepted this signal, we should return `true` to stop the propagation
+        }
+    });
+}).then(
+    (value)=> console.log(`Done: ${value}`),
+    (err)=> console.log(`Failed: ${err}`)
+)
+
+setTimeout(() => {
+    // returns true
+    console.log(`Inc signal result: ${chain.emitSignal('inc', {x: 2})}`);
+    // returns false because there are no handlers to catch this signal type
+    console.log(`Custom signal result: ${chain.emitSignal('custom')}`); 
+});
+````
+Console output:
+````
+Signal inc handled
+Inc signal result: true
+Custom signal result: false
+Done: 3
+
+Process finished with exit code 0
+````
 ## Using Generators as an alternative of ECMA async functions 
 Generally you can use CPromise with ES6 async functions, but if you need some specific functionality
 such as progress capturing or cancellation, you need to use generators instead of async functions to make it work.
@@ -367,10 +403,12 @@ CPromise class
         * [.pause()](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
         * [.resume()](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
         * [.cancel([reason])](#module_CPromise..CPromise+cancel)
-        * [.emitSignal(type, data)](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
+        * [.emitSignal([data], type, [handler])](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
         * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
+        * [.on(type, listener, [prepend])](#module_CPromise..CPromise+on) ⇒ <code>CPromise</code>
+        * [.off(type, listener)](#module_CPromise..CPromise+off) ⇒ <code>CPromise</code>
         * [.listenersCount(type)](#module_CPromise..CPromise+listenersCount) ⇒ <code>Number</code>
         * [.hasListeners(type)](#module_CPromise..CPromise+hasListeners) ⇒ <code>Boolean</code>
         * [.once(type, listener)](#module_CPromise..CPromise+once) ⇒ <code>CPromise</code>
@@ -392,7 +430,7 @@ Constructs new CPromise instance
 
 | Param | Type | Description |
 | --- | --- | --- |
-| executor | <code>CPromiseExecutorFn</code> | promise executor function that will be invoked in the context of the new CPromiseScope instance |
+| executor | <code>CPromiseExecutorFn</code> | promise executor function that will be invoked in the context of the new CPromise instance |
 | [options] | <code>CPromiseOptions</code> |  |
 
 <a name="module_CPromise..CPromise+signal"></a>
@@ -578,15 +616,16 @@ throws the CanceledError that cause promise chain cancellation
 
 <a name="module_CPromise..CPromise+emitSignal"></a>
 
-#### cPromise.emitSignal(type, data) ⇒ <code>Boolean</code>
+#### cPromise.emitSignal([data], type, [handler]) ⇒ <code>Boolean</code>
 Emit a signal of the specific type
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
 | Param | Type |
 | --- | --- |
-| type | <code>String</code> \| <code>Symbol</code> | 
-| data | <code>\*</code> | 
+| [data] | <code>\*</code> | 
+| type | <code>Signal</code> | 
+| [handler] | <code>function</code> | 
 
 <a name="module_CPromise..CPromise+delay"></a>
 
@@ -622,6 +661,31 @@ Catches rejection with optionally specified Error class
 | --- | --- |
 | onRejected | <code>function</code> | 
 | [filter] | <code>Error</code> | 
+
+<a name="module_CPromise..CPromise+on"></a>
+
+#### cPromise.on(type, listener, [prepend]) ⇒ <code>CPromise</code>
+adds a new listener
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| type | <code>EventType</code> |  | 
+| listener | <code>function</code> |  | 
+| [prepend] | <code>Boolean</code> | <code>false</code> | 
+
+<a name="module_CPromise..CPromise+off"></a>
+
+#### cPromise.off(type, listener) ⇒ <code>CPromise</code>
+removes the listener
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| type | <code>EventType</code> | 
+| listener | <code>function</code> | 
 
 <a name="module_CPromise..CPromise+listenersCount"></a>
 
@@ -672,7 +736,7 @@ emits the event
 <a name="module_CPromise..CPromise+emitHook"></a>
 
 #### cPromise.emitHook(type, ...args) ⇒ <code>Boolean</code>
-emits event as a hook. If some listener return true, this method will immediately return true as the result.Else if some listener returns false the method will return false after invoking all the listeners
+Emits event as a hook. If some listener return true, this method will immediately return true as the result.Else false will be retuned
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
@@ -806,6 +870,22 @@ If value is a number it will be considered as the value for timeout optionIf va
 
 ### CPromise~OnResumeListener : <code>function</code>
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise..Signal"></a>
+
+### CPromise~Signal : <code>String</code> \| <code>Signal</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise..SignalHandler"></a>
+
+### CPromise~SignalHandler ⇒ <code>Boolean</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+**this**: <code>{CPromise}</code>  
+
+| Param | Type |
+| --- | --- |
+| type | <code>Signal</code> | 
+| data | <code>\*</code> | 
+| scope | <code>CPromise</code> | 
+
 <a name="module_CPromise..AllOptions"></a>
 
 ### CPromise~AllOptions : <code>object</code>

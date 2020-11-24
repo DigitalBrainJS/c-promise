@@ -142,6 +142,7 @@ module.exports = {
             }
         },
     },
+
     'progress capturing': {
         'should return correct chain progress': async function () {
             const chain = delay(100)
@@ -172,6 +173,7 @@ module.exports = {
             })
         }
     },
+
     'suspension': {
         'should support pause and resume methods': async function() {
             let timestamp = Date.now();
@@ -383,6 +385,24 @@ module.exports = {
                 });
 
                 return chain;
+            },
+
+            'should proxy signals': async function(){
+                const chain= CPromise.from(function*(){
+                    yield new CPromise((resolve, reject, scope)=>{
+                        scope.on('signal', (type, data)=>{
+                            assert.equal(type, 'test');
+                            assert.equal(data, 123);
+                            resolve();
+                        })
+                    });
+                });
+
+                setTimeout(()=>{
+                    chain.emitSignal('test', 123);
+                }, 0);
+
+                return chain;
             }
         }
     },
@@ -444,6 +464,31 @@ module.exports = {
             }, {concurrency: 2}).then((values) => {
                 assert.deepStrictEqual(values, [0, 1, 2, 3, 4]);
             })
+        },
+
+        'should proxy signals': async function(){
+            const chain= CPromise.all([
+                new CPromise((resolve, reject, scope)=>{
+                    scope.on('signal', (type, data)=>{
+                        assert.equal(type, 'test');
+                        assert.equal(data, 123);
+                        resolve();
+                    })
+                }),
+                new CPromise((resolve, reject, scope)=>{
+                    scope.on('signal', (type, data)=>{
+                        assert.equal(type, 'test');
+                        assert.equal(data, 123);
+                        resolve();
+                    })
+                })
+            ]);
+
+            setTimeout(()=>{
+                chain.emitSignal('test', 123);
+            }, 0);
+
+            return chain;
         }
     },
 
@@ -470,6 +515,38 @@ module.exports = {
                 makePromise(150, 789, () => canceledCounter++),
             ]).then(() => {
                 assert.equal(canceledCounter, 2);
+            });
+        },
+
+        'should proxy signals': async function(){
+            return new Promise(resolve=>{
+                let counter=0;
+                const handle= ()=>{
+                    if (++counter === 2) {
+                        resolve();
+                    }
+                }
+
+                const chain= CPromise.race([
+                    new CPromise((resolve, reject, scope)=>{
+                        scope.on('signal', (type, data)=>{
+                            assert.equal(type, 'test');
+                            assert.equal(data, 123);
+                            handle();
+                        })
+                    }),
+                    new CPromise((resolve, reject, scope)=>{
+                        scope.on('signal', (type, data)=>{
+                            assert.equal(type, 'test');
+                            assert.equal(data, 123);
+                            handle();
+                        })
+                    })
+                ]);
+
+                setTimeout(()=>{
+                    chain.emitSignal('test', 123);
+                }, 0);
             });
         }
     },

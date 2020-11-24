@@ -15,6 +15,7 @@
     - [concurrent limitation](#concurrency-limitation)
     - [abortable fetch with timeout](#abortable-fetch-with-timeout)
     - [wrapping axios request](#wrapping-axios-request)
+- [Signals handling](#signals-handling)
 - [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
 - [Related projects](#related-projects) 
 - [API Reference](#api-reference)
@@ -38,18 +39,15 @@ const promise= new CPromise((resolve, reject, {onCancel, onPause, onResume})=>{
     onCancel(()=>{
         //optionally some code here to abort your long-term task (abort request, stop timers etc.)
     });
-}).then(console.log, console.warn);
-
-console.log('isPromise:', promise instanceof Promise); // true
-
-(async()=>{
-    try {
-        console.log(`Done: `, await promise);
-    }catch(err){
+}).then(
+    value => console.log(`Done: ${value}`), 
+    err => {
         console.warn(`Failed: ${err}`); // Failed: CanceledError: canceled
         console.log('isCanceled:', promise.isCanceled); // true
     }
-})()
+);
+
+console.log('isPromise:', promise instanceof Promise); // true
 
 setTimeout(()=> promise.cancel(), 1000);
 ````
@@ -57,7 +55,7 @@ setTimeout(()=> promise.cancel(), 1000);
 
 ## Why :question:
 
-You may face with a challenge when you need to cancel some long-term asynchronous
+You may run into a problem when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
 has lost its relevance to you.
 
@@ -239,7 +237,7 @@ You can use the [cp-fetch package](https://www.npmjs.com/package/cp-fetch) which
 
 - [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
 
-<img src="http://g.recordit.co/E6e97qRPoY.gif" alt="Browser playground with fetch" width="50%" height="50%">
+![alt text](https://github.com/DigitalBrainsJS/c-promise/blob/master/public/demo.gif?raw=true)
 
 - [Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
 
@@ -305,6 +303,44 @@ import cpFetch from "cp-fetch";
 })();
 ````
 
+## Signals handling
+Every CPromise instance could handle "signals", emitted using `emitSignal` method. 
+The method emits `signal` event on each pending promise in the chain until some handler returns `true` as the result.
+This method is used internally for predefined system signals for cancellation and suspending actions.
+
+[Live demo](https://codesandbox.io/s/dank-https-sqruh?file=/src/index.js)
+````javascript
+const CPromise= require('../lib/c-promise');
+
+const chain= new CPromise((resolve, reject, scope)=>{
+    scope.on('signal', (type, data) => {
+        if (type === 'inc') { // ignore other signal types
+            console.log(`Signal ${type} handled`);
+            resolve(data.x + 1);
+            return true; // we accepted this signal, we should return `true` to stop the propagation
+        }
+    });
+}).then(
+    (value)=> console.log(`Done: ${value}`),
+    (err)=> console.log(`Failed: ${err}`)
+)
+
+setTimeout(() => {
+    // returns true
+    console.log(`Inc signal result: ${chain.emitSignal('inc', {x: 2})}`);
+    // returns false because there are no handlers to catch this signal type
+    console.log(`Custom signal result: ${chain.emitSignal('custom')}`); 
+});
+````
+Console output:
+````
+Signal inc handled
+Inc signal result: true
+Custom signal result: false
+Done: 3
+
+Process finished with exit code 0
+````
 ## Using Generators as an alternative of ECMA async functions 
 Generally you can use CPromise with ES6 async functions, but if you need some specific functionality
 such as progress capturing or cancellation, you need to use generators instead of async functions to make it work.
