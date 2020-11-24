@@ -407,6 +407,7 @@ CPromise class
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
         * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
+        * [.listen(signal)](#module_CPromise..CPromise+listen) ⇒ <code>CPromise</code>
         * [.on(type, listener, [prepend])](#module_CPromise..CPromise+on) ⇒ <code>CPromise</code>
         * [.off(type, listener)](#module_CPromise..CPromise+off) ⇒ <code>CPromise</code>
         * [.listenersCount(type)](#module_CPromise..CPromise+listenersCount) ⇒ <code>Number</code>
@@ -661,6 +662,17 @@ Catches rejection with optionally specified Error class
 | --- | --- |
 | onRejected | <code>function</code> | 
 | [filter] | <code>Error</code> | 
+
+<a name="module_CPromise..CPromise+listen"></a>
+
+#### cPromise.listen(signal) ⇒ <code>CPromise</code>
+Listen for abort signal
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| signal | <code>AbortSignal</code> | 
 
 <a name="module_CPromise..CPromise+on"></a>
 
