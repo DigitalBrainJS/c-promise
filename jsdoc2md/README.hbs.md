@@ -15,6 +15,7 @@
     - [concurrent limitation](#concurrency-limitation)
     - [abortable fetch with timeout](#abortable-fetch-with-timeout)
     - [wrapping axios request](#wrapping-axios-request)
+    - [**using with React**]()
 - [Signals handling](#signals-handling)
 - [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
 - [Related projects](#related-projects) 
@@ -73,12 +74,13 @@ has lost its relevance to you.
 - `CPromise.all` supports concurrency limit
 - `CPromise.all` and `CPromise.race` methods have cancellation support, so the others nested pending promises will be canceled
  when the result promise settled
- - promise suspending (using `pause` and `resume` methods)
- - custom signals (`emitSignal`)
- - `delay` method to return promise that will be resolved with the value after timeout
- - ability to set the `weight` for each promise in the chain to manage the impact on chain progress
- - ability to attach meta info on each setting of the progress
+- promise suspending (using `pause` and `resume` methods)
+- custom signals (`emitSignal`)
+- `delay` method to return promise that will be resolved with the value after timeout
+- ability to set the `weight` for each promise in the chain to manage the impact on chain progress
+- ability to attach meta info on each setting of the progress
 - `catch` method supports error class filtering
+- Supports listening to multiple `AbortController` signals
 
 ## Installation :hammer:
 
@@ -237,7 +239,7 @@ You can use the [cp-fetch package](https://www.npmjs.com/package/cp-fetch) which
 
 - [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
 
-![alt text](https://github.com/DigitalBrainsJS/c-promise/blob/master/public/demo.gif?raw=true)
+![Demo](https://raw.githubusercontent.com/DigitalBrainJS/c-promise/master/public/demo.gif)
 
 - [Live nodejs example (runkit.com)](https://runkit.com/digitalbrainjs/runkit-npm-c-promise2)
 
@@ -301,6 +303,65 @@ import cpFetch from "cp-fetch";
     })
     console.log('Done');
 })();
+````
+
+#### Using with React
+Check out this [live demo](https://codesandbox.io/s/infallible-ardinghelli-7r6o8?file=/src/App.js)
+````jsx
+ import CPromise from "c-promise2";
+ import cFetch from "cp-fetch";
+
+ export class AsyncComponent extends React.Component {
+ state = {};
+
+ async componentDidMount() {
+    console.log("mounted");
+    this.controller = new CPromise.AbortController();
+    try {
+      const json = await this.myAsyncTask(
+        "https://run.mocky.io/v3/7b038025-fc5f-4564-90eb-4373f0721822"
+      );
+      console.log("json:", json);
+      await this.myAsyncTaskWithDelay(1000, 123); // just another async task
+      this.setState({ text: JSON.stringify(json) });
+    } catch (err) {
+      if (CPromise.isCanceledError(err)) {
+        console.log("tasks terminated");
+      }
+    }
+  }
+
+  myAsyncTask(url) {
+    return CPromise.from(function* () {
+      const response = yield cFetch(url); // cancellable request
+      // some another promises here
+      return yield response.json();
+    }).listen(this.controller.signal);
+  }
+
+  // another one cancellable async task
+  myAsyncTaskWithDelay(ms, value) {
+    return new CPromise((resolve, reject, { onCancel }) => {
+      const timer = setTimeout(resolve, ms, value);
+      onCancel(() => {
+        console.log("timeout cleared");
+        clearTimeout(timer);
+      });
+    }).listen(this.controller.signal);
+  }
+
+  render() {
+    return (
+      <div>
+        AsyncComponent: <span>{this.state.text}</span>
+      </div>
+    );
+  }
+  componentWillUnmount() {
+    console.log("unmounted");
+    this.controller.abort(); // kill all tasks
+  }
+}
 ````
 
 ## Signals handling
