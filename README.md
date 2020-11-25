@@ -15,7 +15,7 @@
     - [concurrent limitation](#concurrency-limitation)
     - [abortable fetch with timeout](#abortable-fetch-with-timeout)
     - [wrapping axios request](#wrapping-axios-request)
-    - [**using with React**]()
+    - [**using with React**](#using-with-react)
 - [Signals handling](#signals-handling)
 - [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
 - [Related projects](#related-projects) 
@@ -378,7 +378,7 @@ const chain= new CPromise((resolve, reject, scope)=>{
         if (type === 'inc') { // ignore other signal types
             console.log(`Signal ${type} handled`);
             resolve(data.x + 1);
-            return true; // we accepted this signal, we should return `true` to stop the propagation
+            return true; // we have accepted this signal, so we should return `true` to stop the propagation
         }
     });
 }).then(
