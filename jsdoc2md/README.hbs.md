@@ -42,9 +42,10 @@ const promise= new CPromise((resolve, reject, {onCancel, onPause, onResume})=>{
     });
 }).then(
     value => console.log(`Done: ${value}`), 
-    err => {
+    (err, scope) => {
         console.warn(`Failed: ${err}`); // Failed: CanceledError: canceled
-        console.log('isCanceled:', promise.isCanceled); // true
+        console.log('chain isCanceled:', promise.isCanceled); // true
+        console.log('promise isCanceled:', scope.isCanceled); // true
     }
 );
 
