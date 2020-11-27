@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
+## [0.8.0] - 2020-11-27
+
+### Added 
+- `canceled` method to catch CanceledError rejection;
+- error throwing when trying to write read-only public property;
+
+### Updated
+- Improved `isCanceled` flag processing for catch handlers
+
 ## [0.7.1] - 2020-11-24
 
 ### Added 

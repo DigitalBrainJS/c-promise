@@ -25,13 +25,14 @@
 
 ## SYNOPSIS :sparkles:
 
-This library provides an advanced version of the built-in Promise by subclassing.
-You might be interested in using it if you need the following features:
-- promise cancellation (including nested)
-- progress capturing
-- promise suspending
-- timeouts
+CPromise library provides an advanced version of the built-in Promise by subclassing.
+You might be interested in using it if you need:
+- cancel the promise (including nested)
+- capture progress
+- pause the promise
+- pending timeout
 - concurrent limit for `all` and `allSettled` methods with `mapper` reducer
+- advanced signal communication
 
 In terms of the library **the cancellation means rejection with a special error subclass**.
 

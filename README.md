@@ -25,13 +25,14 @@
 
 ## SYNOPSIS :sparkles:
 
-This library provides an advanced version of the built-in Promise by subclassing.
-You might be interested in using it if you need the following features:
-- promise cancellation (including nested)
-- progress capturing
-- promise suspending
-- timeouts
+CPromise library provides an advanced version of the built-in Promise by subclassing.
+You might be interested in using it if you need:
+- cancel the promise (including nested)
+- capture progress
+- pause the promise
+- pending timeout
 - concurrent limit for `all` and `allSettled` methods with `mapper` reducer
+- advanced signal communication
 
 In terms of the library **the cancellation means rejection with a special error subclass**.
 
@@ -469,6 +470,7 @@ CPromise class
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
         * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
+        * [.canceled([onCanceled])](#module_CPromise..CPromise+canceled) ⇒ <code>CPromise</code>
         * [.listen(signal)](#module_CPromise..CPromise+listen) ⇒ <code>CPromise</code>
         * [.on(type, listener, [prepend])](#module_CPromise..CPromise+on) ⇒ <code>CPromise</code>
         * [.off(type, listener)](#module_CPromise..CPromise+off) ⇒ <code>CPromise</code>
@@ -724,6 +726,17 @@ Catches rejection with optionally specified Error class
 | --- | --- |
 | onRejected | <code>function</code> | 
 | [filter] | <code>Error</code> | 
+
+<a name="module_CPromise..CPromise+canceled"></a>
+
+#### cPromise.canceled([onCanceled]) ⇒ <code>CPromise</code>
+Catches CancelError rejection
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| [onCanceled] | <code>function</code> | 
 
 <a name="module_CPromise..CPromise+listen"></a>
 

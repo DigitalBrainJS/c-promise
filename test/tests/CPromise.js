@@ -21,7 +21,7 @@ module.exports = {
         }
     },
 
-    'should support cancallation by the external signal': async function () {
+    'should support cancelation by the external signal': async function () {
         const controller = new CPromise.AbortController();
 
         const timestamp = Date.now();
@@ -280,6 +280,27 @@ module.exports = {
         }
     },
 
+    'CPromise#canceled()': {
+       'should catch the CanceledError rejection': async function(){
+           let onCanceledCalled= false;
+           const chain= CPromise.delay(500)
+               .canceled(()=>{
+                   onCanceledCalled= true;
+               })
+               .catch((err) => {
+                   assert.fail(`should not throw: ${err}`);
+               })
+
+           setTimeout(()=> chain.cancel(), 0);
+
+           return chain.then((value)=>{
+               assert.equal(value, undefined);
+               assert.equal(onCanceledCalled, true, 'onCanceledCalled was not called');
+               assert.equal(chain.isCanceled, true, `isCanceled is not true ${chain.isCanceled}`)
+           });
+       }
+    },
+
     'CPromise.from': {
         'should convert thing to a CPromise instance': async function () {
             let isCanceled = false;
@@ -408,7 +429,7 @@ module.exports = {
     },
 
     'CPromise.all': {
-        'should resolved with array of inner chain vales': async function () {
+        'should be resolved with an array of inner chain values': async function () {
             const v1 = 123;
             const v2 = 456;
             const timestamp = Date.now();
