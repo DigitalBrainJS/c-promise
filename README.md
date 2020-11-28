@@ -75,12 +75,12 @@ has lost its relevance to you.
 - :fire: progress capturing support
 - `CPromise.all` supports concurrency limit
 - `CPromise.all` and `CPromise.race` methods have cancellation support, so the others nested pending promises will be canceled
- when the result promise settled
+ when the resulting promise settled
 - promise suspending (using `pause` and `resume` methods)
 - custom signals (`emitSignal`)
-- `delay` method to return promise that will be resolved with the value after timeout
+- `delay` method to return a promise that will be resolved with the value after a timeout
 - ability to set the `weight` for each promise in the chain to manage the impact on chain progress
-- ability to attach meta info on each setting of the progress
+- ability to attach meta info on each set of the progress
 - `catch` method supports error class filtering
 - Supports listening to multiple `AbortController` signals
 
@@ -109,7 +109,7 @@ const chain= CPromise.delay(1000, 'It works!').then(message => console.log('Done
 
 //chain.cancel();
 ````
-As an alternative you can use any CDN with npn support:
+As an alternative you can use any CDN with npm support:
 - [development UMD version with ](https://unpkg.com/c-promise2/dist/dev/c-promise.umd.js) 
 (additional error handling activated)
 
@@ -155,7 +155,7 @@ console.log('isPromise:', promise instanceof Promise); // true
  }
 })()
 
-setTimeout(()=> promise.cancel(), 3100); // cancel promise after 3100ms
+setTimeout(()=> promise.cancel(), 3100); // cancel the promise after 3100ms
 ````
 Console output:
 ````
@@ -365,10 +365,40 @@ Check out this [live demo](https://codesandbox.io/s/infallible-ardinghelli-7r6o8
   }
 }
 ````
+Using hooks and CPromise `cancel` method [Live Demo](https://codesandbox.io/s/react-cpromise-fetch-kydim?file=/src/MyComponent.js):
+````javascript
+import React, { useEffect, useState } from "react";
+import CPromise from "c-promise2";
+import cpFetch from "cp-fetch";
+
+function MyComponent(props) {
+    const [text, setText] = useState("fetching...");
+
+    useEffect(() => {
+        console.log("mount");
+        const promise = cpFetch(props.url)
+            .then((response) => response.json())
+            .then((value) => CPromise.delay(1000, value))
+            .then((json) => setText(`Success: ${JSON.stringify(json)}`))
+            .canceled() // catch CanceledError
+            .catch((err) => {
+                setText(`Failed: ${err}`);
+            });
+
+        return () => {
+            console.log("unmount");
+            promise.cancel();
+        };
+    }, [props.url]);
+
+    return <p>{text}</p>;
+}
+
+````
 
 ## Signals handling
 Every CPromise instance could handle "signals", emitted using `emitSignal` method. 
-The method emits `signal` event on each pending promise in the chain until some handler returns `true` as the result.
+The method emits a `signal` event on each pending promise in the chain until some handler returns `true` as the result.
 This method is used internally for predefined system signals for cancellation and suspending actions.
 
 [Live demo](https://codesandbox.io/s/dank-https-sqruh?file=/src/index.js)
@@ -405,12 +435,12 @@ Done: 3
 Process finished with exit code 0
 ````
 ## Using Generators as an alternative of ECMA async functions 
-Generally you can use CPromise with ES6 async functions, but if you need some specific functionality
-such as progress capturing or cancellation, you need to use generators instead of async functions to make it work.
+Generally, you able to use CPromise with ES6 async functions, 
+but if you need some specific functionality such as progress capturing or cancellation,
+you need to use generators instead of async functions to make it work. 
 This is because the async function leads all the nested thenables into its own Promise class,
-and there is nothing we can do about it.
-Generators allow you to write asynchronous code just in the same way as async functions do, just use `yield` instead of `await`.
-
+and there is nothing we can do about it. Generators allow you to write asynchronous code 
+just in the same way as async functions do, just use `yield` instead of `await`.
 See the [live demo](https://codesandbox.io/s/happy-ganguly-t1xx8?file=/src/index.js:429-451)
 ````javascript
 import CPromise from "c-promise2";
