@@ -444,7 +444,7 @@ CPromise class
 **Extends**: <code>Promise</code>  
 
 * [~CPromise](#module_CPromise..CPromise) ⇐ <code>Promise</code>
-    * [new CPromise(executor, [options])](#new_module_CPromise..CPromise_new)
+    * [new CPromise([executor], [options])](#new_module_CPromise..CPromise_new)
     * _instance_
         * [.signal](#module_CPromise..CPromise+signal) : <code>AbortSignal</code>
         * [.isPending](#module_CPromise..CPromise+isPending) ⇒ <code>Boolean</code>
@@ -454,7 +454,7 @@ CPromise class
         * [.parent](#module_CPromise..CPromise+parent) ⇒ <code>CPromise</code> \| <code>null</code>
         * [.totalWeight([weight])](#module_CPromise..CPromise+totalWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.innerWeight([weight])](#module_CPromise..CPromise+innerWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
-        * [.progress(value, [data])](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
+        * [.progress([value], [data])](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.propagate(type, data)](#module_CPromise..CPromise+propagate) ⇒ <code>CPromise</code>
         * [.captureProgress([options])](#module_CPromise..CPromise+captureProgress) ⇒ <code>CPromise</code>
         * [.scopes()](#module_CPromise..CPromise+scopes) ⇒ <code>Array.&lt;CPromise&gt;</code>
@@ -489,13 +489,13 @@ CPromise class
 
 <a name="new_module_CPromise..CPromise_new"></a>
 
-#### new CPromise(executor, [options])
-Constructs new CPromise instance
+#### new CPromise([executor], [options])
+Creates a new CPromise instance
 
 
 | Param | Type | Description |
 | --- | --- | --- |
-| executor | <code>CPromiseExecutorFn</code> | promise executor function that will be invoked in the context of the new CPromise instance |
+| [executor] | <code>CPromiseExecutorFn</code> | promise executor function that will be invoked in the context of the new CPromise instance |
 | [options] | <code>CPromiseOptions</code> |  |
 
 <a name="module_CPromise..CPromise+signal"></a>
@@ -558,14 +558,14 @@ Set or get the total weight of the inner chains
 
 <a name="module_CPromise..CPromise+progress"></a>
 
-#### cPromise.progress(value, [data]) ⇒ <code>Number</code> \| <code>CPromise</code>
+#### cPromise.progress([value], [data]) ⇒ <code>Number</code> \| <code>CPromise</code>
 Set promise progress
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| value | <code>Number</code> | a number between [0, 1] |
+| [value] | <code>Number</code> | a number between [0, 1] |
 | [data] | <code>\*</code> | any data to send for progress event listeners |
 
 <a name="module_CPromise..CPromise+propagate"></a>
