@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
+## [0.9.0] - 2020-11-29
+
+### Added
+- Support for correct cancellation of multi-leaves promise chains;
+- `force` option for the `cancel` method;
+
 ## [0.8.2] - 2020-11-28
 
 ### Updated

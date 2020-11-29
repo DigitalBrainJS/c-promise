@@ -367,7 +367,7 @@ Check out this [live demo](https://codesandbox.io/s/infallible-ardinghelli-7r6o8
 }
 ````
 Using hooks and CPromise `cancel` method [Live Demo](https://codesandbox.io/s/react-cpromise-fetch-kydim?file=/src/MyComponent.js):
-````javascript
+````jsx
 import React, { useEffect, useState } from "react";
 import CPromise from "c-promise2";
 import cpFetch from "cp-fetch";
