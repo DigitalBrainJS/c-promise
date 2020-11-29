@@ -3,6 +3,7 @@
 ![npm](https://img.shields.io/npm/dm/c-promise2)
 ![npm bundle size](https://img.shields.io/bundlephobia/minzip/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
+![Stars](https://badgen.net/github/stars/DigitalBrainJS/c-promise)
 
 ## Table of contents
 - [SYNOPSIS](#synopsis-sparkles)
@@ -495,8 +496,8 @@ CPromise class
         * [.reject(err)](#module_CPromise..CPromise+reject) ⇒ <code>CPromise</code>
         * [.pause()](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
         * [.resume()](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
-        * [.cancel([reason])](#module_CPromise..CPromise+cancel)
-        * [.emitSignal([data], type, [handler])](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
+        * [.cancel([reason], [force])](#module_CPromise..CPromise+cancel)
+        * [.emitSignal([data], type, [handler], [validator])](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
         * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
@@ -700,18 +701,19 @@ Resume promise
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 <a name="module_CPromise..CPromise+cancel"></a>
 
-#### cPromise.cancel([reason])
+#### cPromise.cancel([reason], [force])
 throws the CanceledError that cause promise chain cancellation
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
-| Param | Type |
-| --- | --- |
-| [reason] | <code>String</code> \| <code>Error</code> | 
+| Param | Type | Default |
+| --- | --- | --- |
+| [reason] | <code>String</code> \| <code>Error</code> |  | 
+| [force] | <code>Boolean</code> | <code>false</code> | 
 
 <a name="module_CPromise..CPromise+emitSignal"></a>
 
-#### cPromise.emitSignal([data], type, [handler]) ⇒ <code>Boolean</code>
+#### cPromise.emitSignal([data], type, [handler], [validator]) ⇒ <code>Boolean</code>
 Emit a signal of the specific type
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
@@ -720,7 +722,8 @@ Emit a signal of the specific type
 | --- | --- |
 | [data] | <code>\*</code> | 
 | type | <code>Signal</code> | 
-| [handler] | <code>function</code> | 
+| [handler] | <code>SignalHandler</code> | 
+| [validator] | <code>SignalValidator</code> | 
 
 <a name="module_CPromise..CPromise+delay"></a>
 
@@ -989,7 +992,7 @@ If value is a number it will be considered as the value for timeout optionIf va
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 <a name="module_CPromise..Signal"></a>
 
-### CPromise~Signal : <code>String</code> \| <code>Signal</code>
+### CPromise~Signal : <code>String</code> \| <code>Symbol</code>
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 <a name="module_CPromise..SignalHandler"></a>
 
@@ -999,9 +1002,22 @@ If value is a number it will be considered as the value for timeout optionIf va
 
 | Param | Type |
 | --- | --- |
-| type | <code>Signal</code> | 
 | data | <code>\*</code> | 
+| type | <code>Signal</code> | 
 | scope | <code>CPromise</code> | 
+
+<a name="module_CPromise..SignalValidator"></a>
+
+### CPromise~SignalValidator ⇒ <code>Boolean</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+**this**: <code>{CPromise}</code>  
+
+| Param | Type |
+| --- | --- |
+| data | <code>\*</code> | 
+| type | <code>Signal</code> | 
+| scope | <code>CPromise</code> | 
+| isRoot | <code>Boolean</code> | 
 
 <a name="module_CPromise..AllOptions"></a>
 

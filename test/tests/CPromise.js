@@ -4,12 +4,15 @@ const {CanceledError} = CPromise;
 
 const delay = (ms, value, options) => new CPromise(resolve => setTimeout(() => resolve(value), ms), options);
 
-const makePromise = (ms, value, onCancelCb) => {
-    return new CPromise((resolve, reject, {onCancel}) => {
-        setTimeout(resolve, ms, value);
-        onCancelCb && onCancel(onCancelCb);
+const makePromise = (ms, value, handler) => {
+    return new CPromise((resolve, reject, scope) => {
+        const timer = setTimeout(resolve, ms, value);
+        scope.onCancel(() => {
+            clearTimeout(timer);
+            handler && handler(scope);
+        })
     });
-}
+};
 
 module.exports = {
     constructor: {
@@ -21,7 +24,7 @@ module.exports = {
         }
     },
 
-    'should support cancelation by the external signal': async function () {
+    'should support cancellation by the external signal': async function () {
         const controller = new CPromise.AbortController();
 
         const timestamp = Date.now();
@@ -141,6 +144,68 @@ module.exports = {
                 })
             }
         },
+
+        'should cancel only isolated leaves': async function () {
+            let rootCanceled = false;
+            let firstCanceled = false;
+            let secondCanceled = false;
+
+            const root = makePromise(1000, null, () => {
+                rootCanceled = true;
+            });
+
+            const firstLeaf = root.then(() => makePromise(1000)).then(() => {
+                assert.fail('first promise leaf was not canceled');
+            }).canceled(() => {
+                firstCanceled = true;
+            });
+
+            const secondLeaf = root.then(() => makePromise(1000)).then(() => {
+                assert.fail('second promise leaf was not canceled');
+            }).canceled(() => {
+                secondCanceled = true;
+            });
+
+            firstLeaf.cancel();
+            await firstLeaf;
+            assert.equal(firstCanceled, true);
+            assert.equal(secondCanceled, false);
+            assert.equal(rootCanceled, false);
+            secondLeaf.cancel();
+            await secondLeaf;
+            assert.equal(firstCanceled, true);
+            assert.equal(secondCanceled, true);
+            assert.equal(rootCanceled, true);
+            await root.canceled();
+        },
+
+        'should cancel all leaves if the force option is set to true': async function () {
+            let rootCanceled = false;
+            let firstCanceled = false;
+            let secondCanceled = false;
+
+            const root = makePromise(1000, null, () => {
+                rootCanceled = true;
+            });
+
+            const firstLeaf = root.then(() => makePromise(1000)).then(() => {
+                assert.fail('first promise leaf was not canceled');
+            }).canceled(() => {
+                firstCanceled = true;
+            });
+
+            const secondLeaf = root.then(() => makePromise(1000)).then(() => {
+                assert.fail('second promise leaf was not canceled');
+            }).canceled(() => {
+                secondCanceled = true;
+            });
+
+            firstLeaf.cancel('', true);
+            await firstLeaf;
+            assert.equal(firstCanceled, true);
+            assert.equal(secondCanceled, true);
+            assert.equal(rootCanceled, true);
+        }
     },
 
     'progress capturing': {
