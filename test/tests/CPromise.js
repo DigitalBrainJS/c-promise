@@ -543,23 +543,12 @@ module.exports = {
         'should support concurrency': async function () {
             let pending = 0;
 
-            setTimeout(() => {
-                assert.equal(pending, 2);
-            }, 10);
-
-            setTimeout(() => {
-                assert.equal(pending, 2);
-            }, 110);
-
-            setTimeout(() => {
-                assert.equal(pending, 1);
-            }, 210);
-
             return CPromise.all(function* () {
                 for (let i = 0; i < 5; i++) {
                     pending++;
-                    yield makePromise(100, i).then((v) => {
+                    yield makePromise(500, i).then((v) => {
                         pending--;
+                        assert.ok(pending < 2);
                         return v;
                     });
                 }

@@ -526,7 +526,7 @@ CPromise class
     * _static_
         * [.isCanceledError(thing)](#module_CPromise..CPromise.isCanceledError) ⇒ <code>boolean</code>
         * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
-        * [.all(iterable, options)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
+        * [.all(iterable, [options])](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
         * [.allSettled(iterable, options)](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
         * [.from(thing, [options])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
@@ -904,7 +904,7 @@ Returns a CPromise that will be resolved after specified timeout
 
 <a name="module_CPromise..CPromise.all"></a>
 
-#### CPromise.all(iterable, options) ⇒ <code>CPromise</code>
+#### CPromise.all(iterable, [options]) ⇒ <code>CPromise</code>
 Returns a single CPromise that resolves to an array of the results of the input promises.If one fails then other promises will be canceled immediately
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
@@ -912,7 +912,7 @@ Returns a single CPromise that resolves to an array of the results of the input 
 | Param | Type |
 | --- | --- |
 | iterable | <code>Iterable</code> \| <code>Generator</code> \| <code>GeneratorFunction</code> | 
-| options | <code>AllOptions</code> | 
+| [options] | <code>AllOptions</code> | 
 
 **Example**  
 ```js
