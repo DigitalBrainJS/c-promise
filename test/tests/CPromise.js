@@ -289,6 +289,20 @@ module.exports = {
         }
     },
 
+    'CPromise#then': {
+        'should support generators': async function(){
+            return CPromise.resolve()
+                .then(function*(){
+                    const result1= yield makePromise(100, 123);
+                    const result2= yield makePromise(100, 456);
+                    return result1 + result2;
+                })
+                .then(function*(value){
+                    assert.equal(value, 123 + 456);
+                })
+        }
+    },
+
     'CPromise#Symbol(toCPromise)': {
         'should be invoked to convert the object to an CPromise instance': async function () {
             const toCPromise = Symbol.for('toCPromise');
@@ -410,6 +424,8 @@ module.exports = {
             },
 
             'should reject the promise if generator thrown an error': async function () {
+                const timestamp= Date.now();
+                const time = () => Date.now() - timestamp;
                 return CPromise.from(function* () {
                     const timestamp = Date.now();
                     const time = () => Date.now() - timestamp;

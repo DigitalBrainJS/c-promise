@@ -3,7 +3,7 @@
 ![npm](https://img.shields.io/npm/dm/c-promise2)
 ![npm bundle size](https://img.shields.io/bundlephobia/minzip/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
-![Stars](https://badgen.net/github/stars/DigitalBrainJS/c-promise)
+[![Stars](https://badgen.net/github/stars/DigitalBrainJS/c-promise)](https://github.com/DigitalBrainJS/c-promise/stargazers)
 
 ## Table of contents
 - [SYNOPSIS](#synopsis-sparkles)
@@ -457,6 +457,19 @@ const promise= CPromise.from(function*(){
 .progress(value=> console.log(`Progress: ${value}`))
 .then(message=> console.log(`Done: ${message}`));
 ````
+`Then` method also supports generators as callback function
+````javascript
+CPromise.resolve().then(function*(){
+    const value1= yield CPromise.delay(3000, 3);
+    // Run promises in parallel using CPromise.all (shortcut syntax)
+    const [value2, value3]= yield [CPromise.delay(3000, 4), CPromise.delay(3000, 5)]
+    return value1 + value2 + value3;
+}).then(value=>{
+    console.log(`Done: ${value}`); // Done: 12
+}, err=>{
+    console.log(`Failed: ${err}`);
+})
+````
 
 ## Related projects
 - [cp-axios](https://www.npmjs.com/package/cp-axios) - a simple axios wrapper that provides an advanced cancellation api
@@ -516,7 +529,8 @@ CPromise class
         * [.all(iterable, options)](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
         * [.allSettled(iterable, options)](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
-        * [.from(thing, [resolveSignatures])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
+        * [.from(thing, [options])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
+        * [.resolveGenerator(generatorFn, [options])](#module_CPromise..CPromise.resolveGenerator) ⇒ <code>CPromise</code>
 
 <a name="new_module_CPromise..CPromise_new"></a>
 
@@ -929,7 +943,7 @@ returns a promise that resolves after all of the given promises have either fulf
 
 <a name="module_CPromise..CPromise.from"></a>
 
-#### CPromise.from(thing, [resolveSignatures]) ⇒ <code>CPromise</code>
+#### CPromise.from(thing, [options]) ⇒ <code>CPromise</code>
 Converts thing to CPromise using the following rules:- CPromise instance returns as is- Objects with special method defined with key `Symbol.for('toCPromise')` will be converted using this method  The result will be cached for future calls- Thenable wraps into a new CPromise instance, if thenable has the `cancel` method it will be used for canceling- Generator function will be resolved to CPromise- Array will be resoled via `CPromise.all`, arrays with one element (e.g. `[[1000]]`) will be resolved via `CPromise.race`This method returns null if the conversion failed.
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
@@ -937,7 +951,23 @@ Converts thing to CPromise using the following rules:- CPromise instance return
 | Param | Type | Default |
 | --- | --- | --- |
 | thing | <code>\*</code> |  | 
-| [resolveSignatures] | <code>boolean</code> | <code>true</code> | 
+| [options] | <code>Object</code> |  | 
+| [options.resolveSignatures] | <code>Boolean</code> | <code>true</code> | 
+| [options.args] | <code>Array</code> |  | 
+
+<a name="module_CPromise..CPromise.resolveGenerator"></a>
+
+#### CPromise.resolveGenerator(generatorFn, [options]) ⇒ <code>CPromise</code>
+Resolves the generator to an CPromise instance
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| generatorFn | <code>GeneratorFunction</code> | 
+| [options] | <code>Object</code> | 
+| [options.args] | <code>Array</code> | 
+| [options.resolveSignatures] | <code>Boolean</code> | 
 
 <a name="module_CPromise..EventType"></a>
 

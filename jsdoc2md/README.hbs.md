@@ -3,7 +3,7 @@
 ![npm](https://img.shields.io/npm/dm/c-promise2)
 ![npm bundle size](https://img.shields.io/bundlephobia/minzip/c-promise2)
 ![David](https://img.shields.io/david/DigitalBrainJS/c-promise)
-![Stars](https://badgen.net/github/stars/DigitalBrainJS/c-promise)
+[![Stars](https://badgen.net/github/stars/DigitalBrainJS/c-promise)](https://github.com/DigitalBrainJS/c-promise/stargazers)
 
 ## Table of contents
 - [SYNOPSIS](#synopsis-sparkles)
@@ -456,6 +456,19 @@ const promise= CPromise.from(function*(){
 })
 .progress(value=> console.log(`Progress: ${value}`))
 .then(message=> console.log(`Done: ${message}`));
+````
+`Then` method also supports generators as callback function
+````javascript
+CPromise.resolve().then(function*(){
+    const value1= yield CPromise.delay(3000, 3);
+    // Run promises in parallel using CPromise.all (shortcut syntax)
+    const [value2, value3]= yield [CPromise.delay(3000, 4), CPromise.delay(3000, 5)]
+    return value1 + value2 + value3;
+}).then(value=>{
+    console.log(`Done: ${value}`); // Done: 12
+}, err=>{
+    console.log(`Failed: ${err}`);
+})
 ````
 
 ## Related projects
