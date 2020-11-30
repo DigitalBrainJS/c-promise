@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
+## [0.9.1] - 2020-11-30
+
+### Added
+- generator support for the `then` method;
+- `CPromise.resolveGenerator` method;
+
+### Updated
+- refactored CPromise.from method;
+
 ## [0.9.0] - 2020-11-29
 
 ### Added
