@@ -398,7 +398,7 @@ function MyComponent(props) {
 ````
 
 ## Signals handling
-Every CPromise instance could handle "signals", emitted using `emitSignal` method. 
+Every CPromise instance can handle "signals", emitted using `emitSignal` method. 
 The method emits a `signal` event on each pending promise in the chain until some handler returns `true` as the result.
 This method is used internally for predefined system signals for cancellation and suspending actions.
 
@@ -451,7 +451,7 @@ const promise= CPromise.from(function*(){
     yield CPromise.delay(1000);
     yield [CPromise.delay(1000), CPromise.delay(1500)] // resolve chains using CPromise.all([...chains]);
     yield [[CPromise.delay(1000), CPromise.delay(1500)]] // resolve chains using CPromise.race([...chains]);
-    yield new CPromise(resolve=> resolve(true)); // any thenable object will be resolved 
+    yield new Promise.resolve(); // any thenable object will be resolved 
     return "It works!";
 })
 .progress(value=> console.log(`Progress: ${value}`))
