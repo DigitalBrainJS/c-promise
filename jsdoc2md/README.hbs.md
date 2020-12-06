@@ -23,6 +23,7 @@
     - [@async](#asynctimeout-number)
     - [@listen](#listensignal-abortsignalstringsymbol)
     - [@cancel](#cancelreason-string-signal-abortsignalstringsymbol)
+    - [@canceled](#canceledonrejectederr-scope-context-function)
     - [@timeout](#timeoutms-number)
     - [@innerWeight](#innerweightweight-number)
     - [@label](#labellabel-string)
@@ -519,6 +520,9 @@ If this argument not specified or null, the internal default AbortController wil
 
 ### @cancel([reason: String], [signal: AbortSignal|String|Symbol])
 Emits the cancel signal before the target function invoking.
+
+### @canceled([onRejected(err, scope, context): Function])
+Catches rejections with CanceledError errors
 
 ````javascript
 import cpFetch from "cpFetch";

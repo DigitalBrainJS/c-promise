@@ -6,3 +6,4 @@
 /.idea/
 /test/tests/decorators.js
 /test/tests/decorators.legacy.js
+/playground/dist/

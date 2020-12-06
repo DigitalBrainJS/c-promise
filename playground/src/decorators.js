@@ -41,3 +41,18 @@ test.asyncTask(1000)
 setTimeout(()=>{
     test.asyncTask2(1000);
 }, 1100);
+
+
+class Component{
+    @canceled((err)=>{
+
+    })
+    @async()
+    *test(){
+        console.log('this', this);
+    }
+}
+
+const c= new Component();
+
+c.test().then(console.log);

@@ -7,6 +7,7 @@ const {
     timeout,
     innerWeight,
     label,
+    canceled,
     CanceledError,
     E_REASON_TIMEOUT
 } = require('../../lib/c-promise');
@@ -117,6 +118,44 @@ module.exports = {
             assert.equal(thenable.innerWeight(), 2);
             if (time() < 500) {
                 assert.fail('early cancellation detected');
+            }
+        })
+    },
+
+    "should support canceled decorator": async function () {
+        const time = measureTime();
+
+        let invoked = false;
+
+        const klass = class {
+            @canceled(function (err, scope, context) {
+                assert.ok(this instanceof klass);
+                assert.ok(context instanceof klass);
+                assert.ok(err instanceof CanceledError);
+                assert.ok(scope instanceof CPromise);
+                invoked = true;
+            })
+            @async
+            * generator() {
+                yield delay(1000, 123);
+            }
+        }
+
+        const obj = new klass();
+
+        const thenable = obj.generator();
+
+        setTimeout(() => {
+            thenable.cancel();
+        }, 100);
+
+        return thenable.then(() => {
+            assert.ok(invoked, 'was not canceled');
+        }, err => {
+            if(err instanceof CanceledError) {
+                assert.fail(`was not caught: ${err}`);
+            }else{
+                throw err;
             }
         })
     }
