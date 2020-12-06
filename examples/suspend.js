@@ -1,4 +1,4 @@
-const CPromise= require('../lib/c-promise');
+const {CPromise}= require('../lib/c-promise');
 
 function cancelableDelay(ms, value){
     return new CPromise(function(resolve, reject, {onCancel, onPause, onResume}){

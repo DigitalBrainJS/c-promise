@@ -19,6 +19,13 @@
     - [**using with React**](#using-with-react)
 - [Signals handling](#signals-handling)
 - [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
+- [Using decorators](#using-decorators)    
+    - [@async](#async)
+    - [@listen](#listensignal-abortsignalstringsymbol)
+    - [@cancel](#cancelreason-string-signal-abortsignalstringsymbol)
+    - [@timeout](#timeoutms-number)
+    - [@innerWeight](#innerweightweight-number)
+    - [@label](#labellabel-string)
 - [Related projects](#related-projects) 
 - [API Reference](#api-reference)
 - [License](#license)   
@@ -33,6 +40,7 @@ You might be interested in using it if you need:
 - pause the promise
 - pending timeout
 - concurrent limit for `all` and `allSettled` methods with `mapper` reducer
+- auto canceling internal async jobs of your React components 
 - advanced signal communication
 
 In terms of the library **the cancellation means rejection with a special error subclass**.
@@ -74,6 +82,7 @@ has lost its relevance to you.
 - :fire: supports cancellation of the whole chain
 - :fire: supports generator to CPromise resolving (something similar like [co](https://www.npmjs.com/package/co) library does);
 - :fire: progress capturing support
+- :fire: pretty awesome isomorphic decorators, with both specification support
 - `CPromise.all` supports concurrency limit
 - `CPromise.all` and `CPromise.race` methods have cancellation support, so the others nested pending promises will be canceled
  when the resulting promise settled
@@ -111,10 +120,10 @@ const chain= CPromise.delay(1000, 'It works!').then(message => console.log('Done
 //chain.cancel();
 ````
 As an alternative you can use any CDN with npm support:
-- [development UMD version with ](https://unpkg.com/c-promise2/dist/dev/c-promise.umd.js) 
-(additional error handling activated)
 
-- [production UMD version](https://unpkg.com/c-promise2) (or [minified](https://unpkg.com/c-promise2/dist/c-promise.umd.min.js) ~9KB)
+- [production UMD version](https://unpkg.com/c-promise2) 
+(or [minified](https://unpkg.com/c-promise2/dist/c-promise.umd.min.js) ~9KB) - provides the CPromise class 
+as the default export, other exports values declared as static properties
 
 - [production CommonJS version](https://unpkg.com/c-promise2/dist/c-promise.cjs.js)
 
@@ -226,7 +235,7 @@ This is how an abortable fetch ([live example](https://jsfiddle.net/DigitalBrain
 function fetchWithTimeout(url, {timeout, ...fetchOptions}= {}) {
    return new CPromise((resolve, reject, {signal}) => {
       fetch(url, {...fetchOptions, signal}).then(resolve, reject)
-   }, timeout)
+   }, {timeout, nativeController: true})
 }
 
 const promise= fetchWithTimeout('http://localhost/', {timeout: 5000})
@@ -470,6 +479,81 @@ CPromise.resolve().then(function*(){
     console.log(`Failed: ${err}`);
 })
 ````
+
+## Using decorators
+
+The library supports a few types of decorators to make your code cleaner. 
+All decorators are isomorphic- `@async` and `@async()` are totally equal.
+Also, they support both current and legacy decorator's specification.
+
+### @async([{timeout?: Number}])
+Wraps a generator function into an async function, that returns CPromise instance.
+````javascript
+import CPromise from 'c-promise2';
+const {async}= CPromise;
+
+class Test{
+    @async
+    *asyncMethod(x, y){
+        const z= yield CPromise.delay(1000);
+        return x + y + z;
+    }  
+}
+
+const test= new Test();
+
+const promise= test.asyncMethod(1, 2);
+
+console.log(promise instanceof CPromise); // true
+
+promise.then(value=> console.log(`Done: ${value}`), err=> console.warn(`Fail: ${err}`));
+
+setTimeout(()=> promise.cancel(), 500);
+````
+
+### @listen([signal: AbortSignal|String|Symbol])
+Subscribe the CPromise async function to the AbortController signal. 
+If the first argument is String or Symbol it will be considered as controller id, 
+created internally in context of the class.
+If this argument not specified or null, the internal default AbortController will be used.
+
+### @cancel([reason: String], [signal: AbortSignal|String|Symbol])
+Emits the cancel signal before the target function invoking.
+
+````javascript
+import cpFetch from "cpFetch";
+
+class Test{
+    constructor(url) {
+        this.fetchJSON(url).then(json=>{
+            this.json= json;
+            // working with json;
+        })
+    }
+
+    @timeout(10000)
+    @listen
+    @async
+    *fetchJSON(url){
+        const response= yield cpFetch(url);
+        return yield response.json();
+    }  
+    
+    @cancel(E_REASON_DISPOSED)
+    destroy(){
+        // your code here
+    }
+}
+````
+
+### @timeout(ms: Number)
+Sets the timeout option for the CPromise async function.
+
+### @innerWeight(weight: Number)
+Sets the innerWeight option for the CPromise async function.
+
+### @label(label: String)
+Sets the label option for the CPromise async function.
 
 ## Related projects
 - [cp-axios](https://www.npmjs.com/package/cp-axios) - a simple axios wrapper that provides an advanced cancellation api
@@ -968,6 +1052,7 @@ Resolves the generator to an CPromise instance
 | [options] | <code>Object</code> | 
 | [options.args] | <code>Array</code> | 
 | [options.resolveSignatures] | <code>Boolean</code> | 
+| [options.context] | <code>\*</code> | 
 
 <a name="module_CPromise..EventType"></a>
 
@@ -991,11 +1076,12 @@ Resolves the generator to an CPromise instance
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 **Properties**
 
-| Name | Type |
-| --- | --- |
-| label | <code>String</code> | 
-| timeout | <code>Number</code> | 
-| weight | <code>Number</code> | 
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| label | <code>String</code> |  |  |
+| timeout | <code>Number</code> |  |  |
+| weight | <code>Number</code> |  |  |
+| [nativeController] | <code>Boolean</code> | <code>false</code> | prefer native AbortController class as the internal signal |
 
 <a name="module_CPromise..CPromiseOptions"></a>
 

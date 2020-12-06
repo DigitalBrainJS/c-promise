@@ -1,5 +1,5 @@
 const assert = require('assert');
-const CPromise = require('../../lib/c-promise');
+const {CPromise} = require('../../lib/c-promise');
 const {CanceledError} = CPromise;
 
 const delay = (ms, value, options) => new CPromise(resolve => setTimeout(() => resolve(value), ms), options);
@@ -375,7 +375,7 @@ module.exports = {
            return chain.then((value)=>{
                assert.equal(value, undefined);
                assert.equal(onCanceledCalled, true, 'onCanceledCalled was not called');
-               assert.equal(chain.isCanceled, true, `isCanceled is not true ${chain.isCanceled}`)
+               assert.equal(chain.isCanceled, true, `isCanceled is not true`)
            });
        }
     },

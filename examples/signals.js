@@ -1,4 +1,4 @@
-const CPromise= require('../lib/c-promise');
+const {CPromise}= require('../lib/c-promise');
 
 const chain= new CPromise((resolve, reject, scope)=>{
     scope.on('signal', (type, data) => {

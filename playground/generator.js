@@ -1,4 +1,4 @@
-const CPromise= require('../lib/c-promise');
+const {CPromise}= require('../lib/c-promise');
 
 const timestamp= Date.now();
 
