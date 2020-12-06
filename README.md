@@ -563,6 +563,78 @@ Sets the label option for the CPromise async function.
 
 Cancellable Promise with extra features
 
+<a name="module_CPromise.CanceledError"></a>
+
+### CPromise.CanceledError : <code>CanceledError</code>
+CanceledError class
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.AbortController"></a>
+
+### CPromise.AbortController : <code>AbortController</code> \| <code>AbortControllerEx</code>
+Refers to the AbortController class (native if available)
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.AbortControllerEx"></a>
+
+### CPromise.AbortControllerEx : <code>AbortControllerEx</code>
+AbortControllerEx class
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.E_REASON_CANCELED"></a>
+
+### CPromise.E\_REASON\_CANCELED
+Generic cancellation reason
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.E_REASON_DISPOSED"></a>
+
+### CPromise.E\_REASON\_DISPOSED
+Cancellation reason for the case when the instance will be disposed
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.E_REASON_TIMEOUT"></a>
+
+### CPromise.E\_REASON\_TIMEOUT
+Timeout cancellation reason
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.async"></a>
+
+### CPromise.async : <code>function</code>
+async decorator
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.listen"></a>
+
+### CPromise.listen : <code>function</code>
+listen decorator
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.cancel"></a>
+
+### CPromise.cancel : <code>function</code>
+cancel decorator
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.timeout"></a>
+
+### CPromise.timeout : <code>function</code>
+timeout decorator
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.innerWeight"></a>
+
+### CPromise.innerWeight : <code>function</code>
+innerWeight decorator
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.label"></a>
+
+### CPromise.label : <code>function</code>
+label decorator
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
 <a name="module_CPromise..CPromise"></a>
 
 ### CPromise~CPromise ⇐ <code>Promise</code>
