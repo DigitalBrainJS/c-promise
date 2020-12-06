@@ -6,6 +6,26 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
+## [0.10.1] - 2020-12-07
+
+### Updated
+- Renamed AbortControllerEx class back to AbortController to be recognized by third-party libraries;  
+
+## [0.10.0] - 2020-12-07
+
+### Added
+- decorators support;
+- nativeController option for the CPromise constructor;
+- named export instead of default;
+- playground for decorators;
+- reason argument for the AbortController's abort method;
+
+### Removed
+- dev bundles;
+
+### Updated
+- cancellation mechanics;
+
 ## [0.9.1] - 2020-11-30
 
 ### Added
