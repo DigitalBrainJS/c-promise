@@ -20,7 +20,7 @@
 - [Signals handling](#signals-handling)
 - [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
 - [Using decorators](#using-decorators)    
-    - [@async](#async)
+    - [@async](#asynctimeout-number)
     - [@listen](#listensignal-abortsignalstringsymbol)
     - [@cancel](#cancelreason-string-signal-abortsignalstringsymbol)
     - [@timeout](#timeoutms-number)
