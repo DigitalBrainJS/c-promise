@@ -4,3 +4,5 @@
 /node_modules/
 /trash/
 /.idea/
+/test/tests/decorators.js
+/test/tests/decorators.legacy.js
