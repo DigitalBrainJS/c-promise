@@ -30,6 +30,7 @@
     - [@timeout](#timeoutms-number)
     - [@innerWeight](#innerweightweight-number)
     - [@label](#labellabel-string)
+    - [@progress](#progresshandler-function)
 - [Related projects](#related-projects) 
 - [API Reference](#api-reference)
 - [License](#license)   
