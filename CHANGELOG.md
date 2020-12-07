@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
+## [0.10.3] - 2020-12-08
+
+## Fixed
+- a bug with cleaning internal timer;
+
 ## [0.10.2] - 2020-12-08
 
 ### Added
