@@ -404,9 +404,61 @@ function MyComponent(props) {
 
     return <p>{text}</p>;
 }
-
 ````
+With CPromise decorators, a generic React class component might look like this one:
+````jsx
+import React from "react";
+import {
+  CPromise,
+  async,
+  listen,
+  cancel,
+  timeout,
+  canceled,
+  E_REASON_DISPOSED
+} from "c-promise2";
+import cpFetch from "cp-fetch";
 
+export class TestComponent extends React.Component {
+  state = {};
+
+  @canceled(function (err) {
+    console.warn(`Canceled: ${err}`);
+    if (err.code !== E_REASON_DISPOSED) {
+      this.setState({ text: err + "" });
+    }
+  })
+  @listen
+  @async
+  *componentDidMount() {
+    console.log("mounted");
+    const json = yield this.fetchJSON(
+      "https://run.mocky.io/v3/7b038025-fc5f-4564-90eb-4373f0721822?mocky-delay=2s"
+    );
+    this.setState({ text: JSON.stringify(json) });
+  }
+
+  @timeout(5000)
+  @async
+  *fetchJSON(url) {
+    const response = yield cpFetch(url); // cancellable request
+    return yield response.json();
+  }
+
+  render() {
+    return (
+      <div>
+        AsyncComponent: <span>{this.state.text || "fetching..."}</span>
+      </div>
+    );
+  }
+
+  @cancel(E_REASON_DISPOSED)
+  componentWillUnmount() {
+    console.log("unmounted");
+  }
+}
+````
 ## Signals handling
 Every CPromise instance can handle "signals", emitted using `emitSignal` method. 
 The method emits a `signal` event on each pending promise in the chain until some handler returns `true` as the result.
@@ -548,6 +600,28 @@ class Test{
         // your code here
     }
 }
+````
+
+### @progress(handler: Function)
+Adds a listener to monitor the function progress
+````javascript
+class Test{
+    @progress(function (value, scope, data, context) {
+        console.log(`Progress: ${value}`);
+        // Prints: 0.25, 0.5, 0.75, 1
+    })
+    @innerWeight(4)
+    @async
+    * asyncMethod() {
+        yield delay(100);
+        yield delay(100);
+        yield delay(100);
+        yield delay(100);
+    }
+}
+
+const test= new Test();
+const promise= test.asyncMethod();
 ````
 
 ### @timeout(ms: Number)

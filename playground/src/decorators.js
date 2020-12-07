@@ -3,13 +3,18 @@ const {
     async,
     listen,
     cancel,
+    canceled,
     timeout,
+    progress,
+    innerWeight,
     E_REASON_DISPOSED
 }= require('../../lib/c-promise');
 
 
 class Test {
-    @timeout(2000)
+    @progress((value)=> console.log(`Progress: ${value}`))
+    @innerWeight(2)
+    @timeout(10000)
     @listen
     @async
     *asyncTask(delay) {
@@ -39,7 +44,7 @@ test.asyncTask(1000)
     );
 
 setTimeout(()=>{
-    test.asyncTask2(1000);
+    //test.asyncTask2(1000);
 }, 1100);
 
 

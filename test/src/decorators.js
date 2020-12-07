@@ -8,6 +8,7 @@ const {
     innerWeight,
     label,
     canceled,
+    progress,
     CanceledError,
     E_REASON_TIMEOUT
 } = require('../../lib/c-promise');
@@ -123,8 +124,6 @@ module.exports = {
     },
 
     "should support canceled decorator": async function () {
-        const time = measureTime();
-
         let invoked = false;
 
         const klass = class {
@@ -157,6 +156,38 @@ module.exports = {
             }else{
                 throw err;
             }
+        })
+    },
+
+    "should support progress decorator": async function () {
+        let stage= 0;
+
+        const klass = class {
+            @progress(function (value, scope, data, context) {
+                stage++;
+                assert.ok(this instanceof klass);
+                assert.ok(context instanceof klass);
+                assert.ok(scope instanceof CPromise);
+                assert.ok(typeof value === 'number');
+                assert.ok(typeof data === 'object');
+                assert.strictEqual(value, stage / 4);
+            })
+            @innerWeight(4)
+            @async
+            * generator() {
+                yield delay(100);
+                yield delay(100);
+                yield delay(100);
+                yield delay(100);
+            }
+        }
+
+        const obj = new klass();
+
+        const thenable = obj.generator();
+
+        return thenable.then(() => {
+            assert.strictEqual(stage, 4);
         })
     }
 }
