@@ -17,6 +17,9 @@
     - [abortable fetch with timeout](#abortable-fetch-with-timeout)
     - [wrapping axios request](#wrapping-axios-request)
     - [**using with React**](#using-with-react)
+        - [React class component](#react-class-component)
+        - [React functional component](#react-functional-component)
+        - [React class component with CPromise decorators](#react-class-component-with-cpromise-decorators)
 - [Signals handling](#signals-handling)
 - [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
 - [Using decorators](#using-decorators)    
@@ -318,7 +321,8 @@ import cpFetch from "cp-fetch";
 })();
 ````
 
-#### Using with React
+### Using with React
+#### React class component
 Check out this [live demo](https://codesandbox.io/s/infallible-ardinghelli-7r6o8?file=/src/App.js)
 ````jsx
  import CPromise from "c-promise2";
@@ -376,6 +380,7 @@ Check out this [live demo](https://codesandbox.io/s/infallible-ardinghelli-7r6o8
   }
 }
 ````
+#### React functional component
 Using hooks and CPromise `cancel` method [Live Demo](https://codesandbox.io/s/react-cpromise-fetch-kydim?file=/src/MyComponent.js):
 ````jsx
 import React, { useEffect, useState } from "react";
@@ -405,6 +410,7 @@ function MyComponent(props) {
     return <p>{text}</p>;
 }
 ````
+#### React class component with CPromise decorators
 With CPromise decorators, a generic React class component might look like this one:
 ````jsx
 import React from "react";
