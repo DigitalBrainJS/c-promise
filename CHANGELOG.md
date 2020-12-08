@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
+## [0.10.5] - 2020-12-08
+
+## Updated
+- Docs;
+- JSDoc type annotations;
+- innerWeight default value logic;
+
 ## [0.10.4] - 2020-12-08
 
 ### Added

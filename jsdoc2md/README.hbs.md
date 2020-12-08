@@ -31,6 +31,8 @@
     - [@innerWeight](#innerweightweight-number)
     - [@label](#labellabel-string)
     - [@progress](#progresshandler-function)
+- [Events](#events) 
+- [`then` method behavior notes](#then-method-behavior-notes)
 - [Related projects](#related-projects) 
 - [API Reference](#api-reference)
 - [License](#license)   
@@ -413,6 +415,44 @@ function MyComponent(props) {
 ````
 #### React class component with CPromise decorators
 With CPromise decorators, a generic React class component might look like this one:
+[Demo](https://codesandbox.io/s/react-fetch-classes-decorators-tiny-forked-34vf2?file=/src/TestComponent.js)
+````jsx
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles.css";
+import { async, listen, cancel, timeout } from "c-promise2";
+import cpFetch from "cp-fetch";
+
+export class TestComponent extends React.Component {
+  state = {
+    text: ""
+  };
+
+  @timeout(5000)
+  @listen
+  @async
+  *componentDidMount() {
+    console.log("mounted");
+    const response = yield cpFetch(this.props.url);
+    this.setState({ text: `json: ${yield response.text()}` });
+  }
+
+  render() {
+    return <div>{this.state.text}</div>;
+  }
+
+  @cancel()
+  componentWillUnmount() {
+    console.log("unmounted");
+  }
+}
+````
+It automatically manages async code i.g request, so it protects from warning appearing like:
+
+`Warning: Can’t perform a React state update on an unmounted component.`
+
+More complex example:
+[Demo](https://codesandbox.io/s/react-fetch-classes-decorators-forked-oyjf7?file=/src/TestComponent.js)
 ````jsx
 import React from "react";
 import {
@@ -504,6 +544,12 @@ Done: 3
 
 Process finished with exit code 0
 ````
+There are the following system signals (just for reference, don't use them unless you know what you are doing):
+- `CPromise.SIGNAL_CANCEL`
+- `CPromise.SIGNAL_PAUSE`
+- `CPromise.SIGNAL_RESUME`
+
+
 ## Using Generators as an alternative of ECMA async functions 
 Generally, you able to use CPromise with ES6 async functions, 
 but if you need some specific functionality such as progress capturing or cancellation,
@@ -639,6 +685,31 @@ Sets the innerWeight option for the CPromise async function.
 
 ### @label(label: String)
 Sets the label option for the CPromise async function.
+
+## Events
+All events (system and user defined) can be fired only when promises in pending state.
+
+Predefined (system) events:
+- `cancel(reason: CanceledError)` - fired when promise is canceled (rejected with `CanceledError`)
+- `pause` - on promise pause request
+- `resume` - on promise resume request
+- `capture(scope: CPromise)` - fired when some consumer directly or above standing in the chain starts progress capturing
+- `progress(value: Number, scope: CPromise, data: Object?)` - fired when promise chain progress changes
+
+Event listener attaching shortcuts (methods binded to the promise instance):
+- `onCancel(listener: Function)`
+- `onPause(listener: Function)`
+- `onResume(listener: Function)`
+- `onCapture(listener: Function)`
+
+## `then` method behavior notes
+
+The behavior of the method is slightly different from native Promise. 
+In the case when you cancel the chain after it has been resolved within one eventloop tick,
+onRejected will be called with a CanceledError instance, instead of onFulfilled.
+This prevents the execution of unwanted code in the next eventloop tick if 
+the user canceled the promise immediately after the promise was resolved,
+ during the same eventloop tick.
 
 ## Related projects
 - [cp-axios](https://www.npmjs.com/package/cp-axios) - a simple axios wrapper that provides an advanced cancellation api

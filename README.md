@@ -31,6 +31,8 @@
     - [@innerWeight](#innerweightweight-number)
     - [@label](#labellabel-string)
     - [@progress](#progresshandler-function)
+- [Events](#events) 
+- [`then` method behavior notes](#then-method-behavior-notes)
 - [Related projects](#related-projects) 
 - [API Reference](#api-reference)
 - [License](#license)   
@@ -413,6 +415,44 @@ function MyComponent(props) {
 ````
 #### React class component with CPromise decorators
 With CPromise decorators, a generic React class component might look like this one:
+[Demo](https://codesandbox.io/s/react-fetch-classes-decorators-tiny-forked-34vf2?file=/src/TestComponent.js)
+````jsx
+import React from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./styles.css";
+import { async, listen, cancel, timeout } from "c-promise2";
+import cpFetch from "cp-fetch";
+
+export class TestComponent extends React.Component {
+  state = {
+    text: ""
+  };
+
+  @timeout(5000)
+  @listen
+  @async
+  *componentDidMount() {
+    console.log("mounted");
+    const response = yield cpFetch(this.props.url);
+    this.setState({ text: `json: ${yield response.text()}` });
+  }
+
+  render() {
+    return <div>{this.state.text}</div>;
+  }
+
+  @cancel()
+  componentWillUnmount() {
+    console.log("unmounted");
+  }
+}
+````
+It automatically manages async code i.g request, so it protects from warning appearing like:
+
+`Warning: Can’t perform a React state update on an unmounted component.`
+
+More complex example:
+[Demo](https://codesandbox.io/s/react-fetch-classes-decorators-forked-oyjf7?file=/src/TestComponent.js)
 ````jsx
 import React from "react";
 import {
@@ -504,6 +544,12 @@ Done: 3
 
 Process finished with exit code 0
 ````
+There are the following system signals (just for reference, don't use them unless you know what you are doing):
+- `CPromise.SIGNAL_CANCEL`
+- `CPromise.SIGNAL_PAUSE`
+- `CPromise.SIGNAL_RESUME`
+
+
 ## Using Generators as an alternative of ECMA async functions 
 Generally, you able to use CPromise with ES6 async functions, 
 but if you need some specific functionality such as progress capturing or cancellation,
@@ -640,6 +686,31 @@ Sets the innerWeight option for the CPromise async function.
 ### @label(label: String)
 Sets the label option for the CPromise async function.
 
+## Events
+All events (system and user defined) can be fired only when promises in pending state.
+
+Predefined (system) events:
+- `cancel(reason: CanceledError)` - fired when promise is canceled (rejected with `CanceledError`)
+- `pause` - on promise pause request
+- `resume` - on promise resume request
+- `capture(scope: CPromise)` - fired when some consumer directly or above standing in the chain starts progress capturing
+- `progress(value: Number, scope: CPromise, data: Object?)` - fired when promise chain progress changes
+
+Event listener attaching shortcuts (methods binded to the promise instance):
+- `onCancel(listener: Function)`
+- `onPause(listener: Function)`
+- `onResume(listener: Function)`
+- `onCapture(listener: Function)`
+
+## `then` method behavior notes
+
+The behavior of the method is slightly different from native Promise. 
+In the case when you cancel the chain after it has been resolved within one eventloop tick,
+onRejected will be called with a CanceledError instance, instead of onFulfilled.
+This prevents the execution of unwanted code in the next eventloop tick if 
+the user canceled the promise immediately after the promise was resolved,
+ during the same eventloop tick.
+
 ## Related projects
 - [cp-axios](https://www.npmjs.com/package/cp-axios) - a simple axios wrapper that provides an advanced cancellation api
 - [cp-fetch](https://www.npmjs.com/package/cp-fetch) - fetch with timeouts and request cancellation
@@ -749,6 +820,10 @@ CPromise class
         * [.isCaptured](#module_CPromise..CPromise+isCaptured) ⇒ <code>Boolean</code>
         * [.isPaused](#module_CPromise..CPromise+isPaused) ⇒ <code>Boolean</code>
         * [.parent](#module_CPromise..CPromise+parent) ⇒ <code>CPromise</code> \| <code>null</code>
+        * [.onCancel(listener)](#module_CPromise..CPromise+onCancel) ⇒ <code>CPromise</code>
+        * [.onPause(listener)](#module_CPromise..CPromise+onPause) ⇒ <code>CPromise</code>
+        * [.onResume(listener)](#module_CPromise..CPromise+onResume) ⇒ <code>CPromise</code>
+        * [.onCapture(listener)](#module_CPromise..CPromise+onCapture) ⇒ <code>CPromise</code>
         * [.totalWeight([weight])](#module_CPromise..CPromise+totalWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.innerWeight([weight])](#module_CPromise..CPromise+innerWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.progress([value], [data])](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
@@ -763,7 +838,7 @@ CPromise class
         * [.pause()](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
         * [.resume()](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
         * [.cancel([reason], [force])](#module_CPromise..CPromise+cancel)
-        * [.emitSignal([data], type, [handler], [validator])](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
+        * [.emitSignal(type, [data], [handler], [validator])](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
         * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
@@ -832,6 +907,50 @@ indicates if the promise is paused
 get parent promise
 
 **Kind**: instance property of [<code>CPromise</code>](#module_CPromise..CPromise)  
+<a name="module_CPromise..CPromise+onCancel"></a>
+
+#### cPromise.onCancel(listener) ⇒ <code>CPromise</code>
+registers the listener for cancel event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| listener | <code>OnCancelListener</code> | 
+
+<a name="module_CPromise..CPromise+onPause"></a>
+
+#### cPromise.onPause(listener) ⇒ <code>CPromise</code>
+registers the listener for pause event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| listener | <code>OnPauseListener</code> | 
+
+<a name="module_CPromise..CPromise+onResume"></a>
+
+#### cPromise.onResume(listener) ⇒ <code>CPromise</code>
+registers the listener for resume event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| listener | <code>OnResumeListener</code> | 
+
+<a name="module_CPromise..CPromise+onCapture"></a>
+
+#### cPromise.onCapture(listener) ⇒ <code>CPromise</code>
+registers the listener for capture event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| listener | <code>OnCaptureListener</code> | 
+
 <a name="module_CPromise..CPromise+totalWeight"></a>
 
 #### cPromise.totalWeight([weight]) ⇒ <code>Number</code> \| <code>CPromise</code>
@@ -980,15 +1099,15 @@ throws the CanceledError that cause promise chain cancellation
 
 <a name="module_CPromise..CPromise+emitSignal"></a>
 
-#### cPromise.emitSignal([data], type, [handler], [validator]) ⇒ <code>Boolean</code>
+#### cPromise.emitSignal(type, [data], [handler], [validator]) ⇒ <code>Boolean</code>
 Emit a signal of the specific type
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
 | Param | Type |
 | --- | --- |
-| [data] | <code>\*</code> | 
 | type | <code>Signal</code> | 
+| [data] | <code>\*</code> | 
 | [handler] | <code>SignalHandler</code> | 
 | [validator] | <code>SignalValidator</code> | 
 
@@ -1275,6 +1394,15 @@ If value is a number it will be considered as the value for timeout optionIf va
 
 ### CPromise~OnResumeListener : <code>function</code>
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise..OnCaptureListener"></a>
+
+### CPromise~OnCaptureListener : <code>function</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+
+| Param | Type |
+| --- | --- |
+| CPromise | <code>scope</code> | 
+
 <a name="module_CPromise..Signal"></a>
 
 ### CPromise~Signal : <code>String</code> \| <code>Symbol</code>
