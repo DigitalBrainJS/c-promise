@@ -43,10 +43,12 @@
 CPromise library provides an advanced version of the built-in Promise by subclassing.
 You might be interested in using it if you need:
 - cancel the promise (including nested)
-- capture progress
+- cancel async tasks inside React components
+- some way to make cancellation declarative (with decorators)
+- capture promise progress
 - pause the promise
 - pending timeout
-- concurrent limit for `all` and `allSettled` methods with `mapper` reducer
+- concurrent limitation for `all` and `allSettled` methods with `mapper` reducer
 - auto canceling internal async jobs of your React components 
 - advanced signal communication
 
@@ -592,7 +594,7 @@ The library supports a few types of decorators to make your code cleaner.
 All decorators are isomorphic- `@async` and `@async()` are totally equal.
 Also, they support both current and legacy decorator's specification.
 
-### @async([{timeout?: Number}])
+### @async([{timeout?: Number, innerWeight?: Number, label? : String, weight?: Number}])
 Wraps a generator function into an async function, that returns CPromise instance.
 ````javascript
 import CPromise from 'c-promise2';
