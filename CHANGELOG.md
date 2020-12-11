@@ -6,7 +6,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 
 For changes before version 0.4.0, please see the commit history
 
-## [0.10.6] - 2020-12-089
+## [0.10.7] - 2020-12-12
+
+### Added
+- `promisify` method;
+
+## [0.10.6] - 2020-12-09
 
 ### Added
 - `weight`, `innerWeight` and `label` options for the `async` decorator;

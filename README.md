@@ -72,7 +72,27 @@ console.log('isPromise:', promise instanceof Promise); // true
 
 setTimeout(()=> promise.cancel(), 1000);
 ````
+Using decorators in React component to manage async tasks
+````jsx
+export class FetchComponent extends React.Component {
+  state = {text: ""};
 
+  @timeout(5000)
+  @listen
+  @async
+  *componentDidMount() {
+    const response = yield cpFetch(this.props.url);
+    this.setState({ text: `json: ${yield response.text()}` });
+  }
+
+  render() {
+    return <div>{this.state.text}</div>;
+  }
+
+  @cancel()
+  componentWillUnmount() {}
+}
+````
 
 ## Why :question:
 
