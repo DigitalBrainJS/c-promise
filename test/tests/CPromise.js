@@ -705,4 +705,102 @@ module.exports = {
             assert.ok(invoked2);
         }
     },
+
+    'CPromise.promisify': {
+        'callback styled function': {
+            'should handle resolving with a single argument': async function () {
+                const fn = CPromise.promisify(function (arg0, cb) {
+                    assert.strictEqual(arg0, 123);
+                    setTimeout(cb, 100, undefined, 456);
+                });
+
+                assert.ok(typeof fn === 'function');
+
+                const promise = fn(123);
+
+                assert.ok(promise instanceof CPromise);
+
+                return promise.then(value => {
+                    assert.strictEqual(value, 456);
+                })
+            },
+
+            'should handle resolving with multiple arguments': async function () {
+                const fn = CPromise.promisify(function (arg0, cb) {
+                    assert.strictEqual(arg0, 123);
+                    setTimeout(cb, 100, undefined, 456, 789);
+                });
+
+                assert.ok(typeof fn === 'function');
+
+                const promise = fn(123);
+
+                assert.ok(promise instanceof CPromise);
+
+                return promise.then(value => {
+                    assert.deepStrictEqual(value, [456, 789]);
+                })
+            },
+
+            'should handle a single argument as an array when multiArgs option activated': async function () {
+                const fn = CPromise.promisify(function (arg0, cb) {
+                    assert.strictEqual(arg0, 123);
+                    setTimeout(cb, 100, undefined, 456);
+                }, {multiArgs: true});
+
+                assert.ok(typeof fn === 'function');
+
+                const promise = fn(123);
+
+                assert.ok(promise instanceof CPromise);
+
+                return promise.then(value => {
+                    assert.deepStrictEqual(value, [456]);
+                })
+            },
+
+            'should handle rejection': async function () {
+                const fn = CPromise.promisify(function (arg0, cb) {
+                    assert.strictEqual(arg0, 123);
+                    setTimeout(cb, 100, new Error('test'));
+                });
+
+                const promise = fn(123);
+
+                return promise.then(value => {
+                    assert.fail(`doesn't throw`);
+                }).catch(err => {
+                    assert.ok(err.message, 'test');
+                })
+            }
+        },
+
+        'should support async function decoration': async function () {
+            const fn = CPromise.promisify(async function (arg0) {
+                return delay(100, 123);
+            });
+
+            const promise = fn(123);
+
+            assert.ok(promise instanceof CPromise);
+
+            return promise.then(value => {
+                assert.deepStrictEqual(value, 123);
+            })
+        },
+
+        'should support generator function decoration': async function () {
+            const fn = CPromise.promisify(function* (arg0) {
+                return yield delay(100, 123);
+            });
+
+            const promise = fn(123);
+
+            assert.ok(promise instanceof CPromise);
+
+            return promise.then(value => {
+                assert.deepStrictEqual(value, 123);
+            })
+        }
+    }
 };

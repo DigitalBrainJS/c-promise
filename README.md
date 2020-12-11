@@ -860,6 +860,7 @@ CPromise class
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
         * [.allSettled(iterable, options)](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
         * [.from(thing, [options])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
+        * [.promisify(originalFn, [options])](#module_CPromise..CPromise.promisify) ⇒ <code>function</code>
         * [.resolveGenerator(generatorFn, [options])](#module_CPromise..CPromise.resolveGenerator) ⇒ <code>CPromise</code>
 
 <a name="new_module_CPromise..CPromise_new"></a>
@@ -1329,6 +1330,18 @@ Converts thing to CPromise using the following rules:- CPromise instance return
 | [options.resolveSignatures] | <code>Boolean</code> | <code>true</code> | 
 | [options.args] | <code>Array</code> |  | 
 
+<a name="module_CPromise..CPromise.promisify"></a>
+
+#### CPromise.promisify(originalFn, [options]) ⇒ <code>function</code>
+Converts callback styled function|GeneratorFn|AsyncFn to CPromise async function
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| originalFn | <code>function</code> \| <code>GeneratorFunction</code> \| <code>AsyncFunction</code> | 
+| [options] | <code>PromisifyOptions</code> \| <code>function</code> \| <code>Boolean</code> | 
+
 <a name="module_CPromise..CPromise.resolveGenerator"></a>
 
 #### CPromise.resolveGenerator(generatorFn, [options]) ⇒ <code>CPromise</code>
@@ -1446,6 +1459,27 @@ If value is a number it will be considered as the value for timeout optionIf va
 | mapper | <code>function</code> | function to map each element |
 | ignoreResults | <code>boolean</code> | do not collect results |
 | signatures | <code>boolean</code> | use advanced signatures for vales resolving |
+
+<a name="module_CPromise..PromisifyFinalizeFn"></a>
+
+### CPromise~PromisifyFinalizeFn : <code>function</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+
+| Param | Type |
+| --- | --- |
+| result | <code>\*</code> | 
+| scope | <code>CPromise</code> | 
+
+<a name="module_CPromise..PromisifyOptions"></a>
+
+### CPromise~PromisifyOptions : <code>Object</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+**Properties**
+
+| Name | Type | Description |
+| --- | --- | --- |
+| multiArgs | <code>Boolean</code> | aggregate all passed arguments to an array |
+| finalize | <code>PromisifyFinalizeFn</code> | aggregate all passed arguments to an array |
 
 
 ## License
