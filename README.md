@@ -135,7 +135,7 @@ $ npm install c-promise2
 $ yarn add c-promise2
 ```
 
-The package consists pre-built bundles for umd, cjs, mjs versions which can be found in the `./dist/` directory
+The package consists of pre-built umd, cjs, mjs bundles which can be found in the `./dist/` directory
 
 - Import the library:
 
