@@ -406,33 +406,37 @@ Check out this [live demo](https://codesandbox.io/s/infallible-ardinghelli-7r6o8
 }
 ````
 #### React functional component
-Using hooks and CPromise `cancel` method [Live Demo](https://codesandbox.io/s/react-cpromise-fetch-kydim?file=/src/MyComponent.js):
+Using hooks and CPromise `cancel` method [Live Demo](https://codesandbox.io/s/react-cpromise-fetch-promisify-forked-3h4v2?file=/src/MyComponent.js):
 ````jsx
 import React, { useEffect, useState } from "react";
-import CPromise from "c-promise2";
+import { CPromise, CanceledError } from "c-promise2";
 import cpFetch from "cp-fetch";
 
 function MyComponent(props) {
-    const [text, setText] = useState("fetching...");
+  const [text, setText] = useState("fetching...");
 
-    useEffect(() => {
-        console.log("mount");
-        const promise = cpFetch(props.url)
-            .then((response) => response.json())
-            .then((value) => CPromise.delay(1000, value))
-            .then((json) => setText(`Success: ${JSON.stringify(json)}`))
-            .canceled() // catch CanceledError
-            .catch((err) => {
-                setText(`Failed: ${err}`);
-            });
+  useEffect(() => {
+    console.log("mount");
+    const promise = CPromise.from(function* () {
+      try {
+        const response = yield cpFetch(props.url);
+        const json = yield response.json();
+        yield CPromise.delay(1000);
+        setText(`Success: ${JSON.stringify(json)}`);
+      } catch (err) {  
+        console.warn(err);
+        CanceledError.rethrow(err);
+        setText(`Failed: ${err}`);
+      }
+    });
 
-        return () => {
-            console.log("unmount");
-            promise.cancel();
-        };
-    }, [props.url]);
+    return () => {
+      console.log("unmount");
+      promise.cancel();
+    };
+  }, [props.url]);
 
-    return <p>{text}</p>;
+  return <p>{text}</p>;
 }
 ````
 #### React class component with CPromise decorators
@@ -824,6 +828,10 @@ label decorator
 ### CPromise.progress : <code>function</code>
 progress decorator
 
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.promisify"></a>
+
+### CPromise.promisify : <code>function</code>
 **Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
 <a name="module_CPromise..CPromise"></a>
 
