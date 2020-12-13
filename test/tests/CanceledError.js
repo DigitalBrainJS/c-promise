@@ -4,7 +4,7 @@ const {CanceledError} = CPromise;
 
 module.exports = {
     'CanceledError.throw': {
-        'should throw the error that is instance of CanceledError': function () {
+        'should throw the error that is an instance of CanceledError': function () {
             const originalErr = new CanceledError();
             try {
                 CanceledError.rethrow(originalErr);
