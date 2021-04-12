@@ -22,8 +22,9 @@
         - [React class component with CPromise decorators](#react-class-component-with-cpromise-decorators)
 - [Signals handling](#signals-handling)
 - [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
+- [Atomic sub-chains](#atomic-sub-chains)
 - [Using decorators](#using-decorators)    
-    - [@async](#asynctimeout-number)
+    - [@async](#asynctimeout-number-innerweight-number-label--string-weight-number)
     - [@listen](#listensignal-abortsignalstringsymbol)
     - [@cancel](#cancelreason-string-signal-abortsignalstringsymbol)
     - [@canceled](#canceledonrejectederr-scope-context-function)
@@ -42,19 +43,30 @@
 
 CPromise library provides an advanced version of the built-in Promise by subclassing.
 You might be interested in using it if you need:
-- cancel the promise (including nested)
-- cancel async tasks inside React components
-- some way to make cancellation declarative (with decorators)
-- capture promise progress
-- pause the promise
+- cancel the promise through rejection (including nested)
+- cancel async tasks inside React components (useful to cancel internal code when components unmounts)
+    - with built-in decorators for class components
+    - with `useAsyncEffect`&`useAsyncCallback`  hooks provided by [useAsyncEffect2](https://www.npmjs.com/package/use-async-effect2) package
+- cancel network requests with promises, which allows the network request to be automatically aborted when the parent async function is canceled:
+    - `fetch` use [cp-fetch](https://www.npmjs.com/package/cp-fetch)  
+    - `axios` use [cp-axios](https://www.npmjs.com/package/cp-axios)  
+- control cancellation flow to write really complicated async flows with cancelation ability.
+- define atomic promise chains that cannot be canceled in the middle of execution from upper chains
+- `AbortController` support for promises
+- some way to make cancellation declarative (with method decorators)
+- capture promise chain progress with defining progress impact for each promise (default 1)
+- generators support to write a flat code in the same way as `async`&`await` do, but with `CPromise` features support
+- pause/resume the promise
 - pending timeout
 - concurrent limitation for `all` and `allSettled` methods with `mapper` reducer
-- auto canceling internal async jobs of your React components 
 - advanced signal communication
 
 In terms of the library **the cancellation means rejection with a special error subclass**.
 
+[Codesandbox Live Demo](https://codesandbox.io/s/c-promise2-readme-basic1-7d8u0)
 ````javascript
+import { CPromise } from "c-promise2";
+
 const promise= new CPromise((resolve, reject, {onCancel, onPause, onResume})=>{
     onCancel(()=>{
         //optionally some code here to abort your long-term task (abort request, stop timers etc.)
@@ -72,7 +84,14 @@ console.log('isPromise:', promise instanceof Promise); // true
 
 setTimeout(()=> promise.cancel(), 1000);
 ````
-Using decorators in React component to manage async tasks
+Log:
+````
+isPromise: true
+Failed: CanceledError: canceled 
+chain isCanceled: true
+promise isCanceled: true
+````
+Using decorators in React component to manage async tasks and protect from [well-known React leak error](https://stackoverflow.com/questions/32903001/react-setstate-on-unmounted-component):
 ````jsx
 export class FetchComponent extends React.Component {
   state = {text: ""};
@@ -140,9 +159,9 @@ The package consists of pre-built umd, cjs, mjs bundles which can be found in th
 - Import the library:
 
 ````javascript
-import CPromise from "c-promise2";
-// const CPromise = require("c-promise2"); // using require
-// import CPromise from "c-promise2/dev"; // development version
+import {CPromise} from "c-promise2";
+// const {CPromise} = require("c-promise2"); // using require
+// import {CPromise} from "c-promise2/dev"; // development version
     
 const chain= CPromise.delay(1000, 'It works!').then(message => console.log('Done', message));
 
@@ -276,7 +295,8 @@ setTimeout(()=> promise.cancel(), 1000);
 // you able to call cancel() at any time to cancel the entire chain at any stage
 // the related network request will also be aborted
 ````
-You can use the [cp-fetch package](https://www.npmjs.com/package/cp-fetch) which provides a CPromise wrapper for fetch API.
+You can use the [cp-fetch package](https://www.npmjs.com/package/cp-fetch) which provides a ready to use 
+CPromise wrapper for cross-platform fetch API.
 
 - [Live browser example (jsfiddle.net)](https://jsfiddle.net/DigitalBrain/g0dv5L8c/5/)
 
@@ -612,6 +632,107 @@ CPromise.resolve().then(function*(){
 })
 ````
 
+## Atomic sub-chains
+
+Sometimes you need to prevent any sub-chain from being canceled from the outside because you want to allow some
+already started asynchronous procedure to be completed before closing the following promise chains.
+To solve this challenge use `.atomic(["disabled"|"detached"|"await"])` method.
+- `'detached'` - keep the sub-chain execution running in 'background', the main chain reject immediately
+- `'await'` - wait for the sub-chain to complete and then reject the next promise in the outer chain
+- `false` considering as `'disabled'`
+- `true`  considering as  `'await'`
+
+Check out the difference with examples:
+Normal cancellation behaviour `.atomic('disabled')` ([Demo](https://codesandbox.io/s/c-promise2-readme-not-atomic-i9pu8)):
+````javascript
+const p = CPromise.delay(1000, 1)
+  .then((v) => {
+    console.log("p1");
+    return CPromise.delay(1000, 2);
+  })
+  .then((v) => {
+    console.log("p2");
+    return CPromise.delay(1000, 3);
+  })
+  .atomic()
+  .then((v) => {
+    console.log("p3");
+    return CPromise.delay(1000, 4);
+  })
+  .then(
+    (value) => console.log(`Done:`, value),
+    (err) => console.warn(`Fail: ${err}`)
+  );
+
+setTimeout(() => p.cancel(), 1500);
+````
+output:
+````
+p1
+Fail: CanceledError: canceled
+
+Process finished with exit code 0
+````
+`.atomic('detached')` cancellation behaviour ([Demo](https://codesandbox.io/s/c-promise2-readme-atomic-detached-nvvwo?file=/src/index.js)):
+````javascript
+const p = CPromise.delay(1000, 1)
+  .then((v) => {
+    console.log("p1");
+    return CPromise.delay(1000, 2);
+  })
+  .then((v) => {
+    console.log("p2");
+    return CPromise.delay(1000, 3);
+  })
+  .atomic('detached')
+  .then((v) => {
+    console.log("p3");
+    return CPromise.delay(1000, 4);
+  })
+  .then(
+    (value) => console.log(`Done:`, value),
+    (err) => console.warn(`Fail: ${err}`)
+  );
+
+setTimeout(() => p.cancel(), 1500);
+````
+output:
+````
+p1
+Fail: CanceledError: canceled
+p2
+````
+`.atomic('await')` cancellation behaviour ([Demo](https://codesandbox.io/s/c-promise2-readme-atomic-await-e9812)):
+````javascript
+const p = CPromise.delay(1000, 1)
+  .then((v) => {
+    console.log("p1");
+    return CPromise.delay(1000, 2);
+  })
+  .then((v) => {
+    console.log("p2");
+    return CPromise.delay(1000, 3);
+  })
+  .atomic()
+  .then((v) => {
+    console.log("p3");
+    return CPromise.delay(1000, 4);
+  })
+  .then(
+    (value) => console.log(`Done:`, value),
+    (err) => console.warn(`Fail: ${err}`)
+  );
+
+setTimeout(() => p.cancel(), 1500);
+````
+output:
+````
+p1
+p2
+Fail: CanceledError: canceled
+
+Process finished with exit code 0
+````
 ## Using decorators
 
 The library supports a few types of decorators to make your code cleaner. 
@@ -740,6 +861,7 @@ the user canceled the promise immediately after the promise was resolved,
 ## Related projects
 - [cp-axios](https://www.npmjs.com/package/cp-axios) - a simple axios wrapper that provides an advanced cancellation api
 - [cp-fetch](https://www.npmjs.com/package/cp-fetch) - fetch with timeouts and request cancellation
+- [use-async-effect2](https://www.npmjs.com/package/use-async-effect2) - cancel async code in functional React components
 
 ## API Reference
 
@@ -867,8 +989,9 @@ CPromise class
         * [.reject(err)](#module_CPromise..CPromise+reject) ⇒ <code>CPromise</code>
         * [.pause()](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
         * [.resume()](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
+        * [.atomic([type])](#module_CPromise..CPromise+atomic) ⇒
         * [.cancel([reason], [force])](#module_CPromise..CPromise+cancel)
-        * [.emitSignal(type, [data], [handler], [validator])](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
+        * [.emitSignal(type, [data], [handler], [locator])](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
         * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
@@ -889,7 +1012,7 @@ CPromise class
         * [.allSettled(iterable, options)](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
         * [.from(thing, [options])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
         * [.promisify(originalFn, [options])](#module_CPromise..CPromise.promisify) ⇒ <code>function</code>
-        * [.resolveGenerator(generatorFn, [options])](#module_CPromise..CPromise.resolveGenerator) ⇒ <code>CPromise</code>
+        * [.run(generatorFn, [options])](#module_CPromise..CPromise.run) ⇒ <code>CPromise</code>
 
 <a name="new_module_CPromise..CPromise_new"></a>
 
@@ -1116,6 +1239,18 @@ Pause promise
 Resume promise
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+<a name="module_CPromise..CPromise+atomic"></a>
+
+#### cPromise.atomic([type]) ⇒
+Make promise chain atomic (non-cancellable for external signals)
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+**Returns**: CPromise  
+
+| Param | Type |
+| --- | --- |
+| [type] | <code>number</code> \| <code>boolean</code> \| <code>&quot;disabled&quot;</code> \| <code>&quot;detached&quot;</code> \| <code>&quot;await&quot;</code> | 
+
 <a name="module_CPromise..CPromise+cancel"></a>
 
 #### cPromise.cancel([reason], [force])
@@ -1130,7 +1265,7 @@ throws the CanceledError that cause promise chain cancellation
 
 <a name="module_CPromise..CPromise+emitSignal"></a>
 
-#### cPromise.emitSignal(type, [data], [handler], [validator]) ⇒ <code>Boolean</code>
+#### cPromise.emitSignal(type, [data], [handler], [locator]) ⇒ <code>Boolean</code>
 Emit a signal of the specific type
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
@@ -1140,7 +1275,7 @@ Emit a signal of the specific type
 | type | <code>Signal</code> | 
 | [data] | <code>\*</code> | 
 | [handler] | <code>SignalHandler</code> | 
-| [validator] | <code>SignalValidator</code> | 
+| [locator] | <code>SignalLocator</code> | 
 
 <a name="module_CPromise..CPromise+delay"></a>
 
@@ -1370,20 +1505,21 @@ Converts callback styled function|GeneratorFn|AsyncFn to CPromise async function
 | originalFn | <code>function</code> \| <code>GeneratorFunction</code> \| <code>AsyncFunction</code> | 
 | [options] | <code>PromisifyOptions</code> \| <code>function</code> \| <code>Boolean</code> | 
 
-<a name="module_CPromise..CPromise.resolveGenerator"></a>
+<a name="module_CPromise..CPromise.run"></a>
 
-#### CPromise.resolveGenerator(generatorFn, [options]) ⇒ <code>CPromise</code>
+#### CPromise.run(generatorFn, [options]) ⇒ <code>CPromise</code>
 Resolves the generator to an CPromise instance
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
-| Param | Type |
-| --- | --- |
-| generatorFn | <code>GeneratorFunction</code> | 
-| [options] | <code>Object</code> | 
-| [options.args] | <code>Array</code> | 
-| [options.resolveSignatures] | <code>Boolean</code> | 
-| [options.context] | <code>\*</code> | 
+| Param | Type | Description |
+| --- | --- | --- |
+| generatorFn | <code>GeneratorFunction</code> |  |
+| [options] | <code>Object</code> |  |
+| [options.args] | <code>Array</code> |  |
+| [options.resolveSignatures] | <code>Boolean</code> | resolve extra signatures (like arrays with CPromise.all) |
+| [options.scopeArg] | <code>Boolean</code> | pass the CPromise scope as the first argument to the generator function |
+| [options.context] | <code>\*</code> |  |
 
 <a name="module_CPromise..EventType"></a>
 
@@ -1462,9 +1598,9 @@ If value is a number it will be considered as the value for timeout optionIf va
 | type | <code>Signal</code> | 
 | scope | <code>CPromise</code> | 
 
-<a name="module_CPromise..SignalValidator"></a>
+<a name="module_CPromise..SignalLocator"></a>
 
-### CPromise~SignalValidator ⇒ <code>Boolean</code>
+### CPromise~SignalLocator ⇒ <code>Boolean</code>
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 **this**: <code>{CPromise}</code>  
 
@@ -1506,8 +1642,10 @@ If value is a number it will be considered as the value for timeout optionIf va
 
 | Name | Type | Description |
 | --- | --- | --- |
-| multiArgs | <code>Boolean</code> | aggregate all passed arguments to an array |
-| finalize | <code>PromisifyFinalizeFn</code> | aggregate all passed arguments to an array |
+| [multiArgs] | <code>Boolean</code> | aggregate all passed arguments to an array |
+| [finalize] | <code>PromisifyFinalizeFn</code> | aggregate all passed arguments to an array |
+| [fnType] | <code>&quot;plain&quot;</code> \| <code>&quot;generator&quot;</code> \| <code>&quot;async&quot;</code> |  |
+| [scopeArg] | <code>boolean</code> | pass the CPromise scope as the first argument to the generator function |
 
 
 ## License

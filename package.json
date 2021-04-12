@@ -27,6 +27,8 @@
     "coveralls": "nyc report --reporter=text-lcov | coveralls",
     "prepublishOnly": "npm run build && npm run test:coverage && npm run docs",
     "postversion": "git push && git push --tags",
+    "changelog": "auto-changelog -p",
+    "version": "npm run changelog  && git add CHANGELOG.md",
     "build": "rollup -c",
     "build:watch": "nodemon --watch lib/ --exec \\\"npm run build\\\"",
     "dev": "cross-env NODE_ENV=development \"npm run test:watch\"",
@@ -41,6 +43,12 @@
     "hooks": {
       "pre-commit": "npm run docs ; git add ."
     }
+  },
+  "auto-changelog": {
+    "output": "CHANGELOG.md",
+    "template": "keepachangelog",
+    "unreleased": true,
+    "commitLimit": false
   },
   "repository": "https://github.com/DigitalBrainJS/c-promise.git",
   "bugs": {
@@ -119,6 +127,7 @@
     "@rollup/plugin-commonjs": "^15.0.0",
     "@rollup/plugin-multi-entry": "^4.0.0",
     "@rollup/plugin-node-resolve": "^9.0.0",
+    "auto-changelog": "^2.2.1",
     "coveralls": "^3.1.0",
     "cross-env": "^7.0.2",
     "husky": "^4.3.0",
