@@ -46,8 +46,7 @@
   },
   "auto-changelog": {
     "output": "CHANGELOG.md",
-    "template": "keepachangelog",
-    "unreleased": true,
+    "unreleased": false,
     "commitLimit": false
   },
   "repository": "https://github.com/DigitalBrainJS/c-promise.git",
