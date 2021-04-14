@@ -10,6 +10,7 @@
 - [Why](#why-question)
 - [Features](#features)
 - [Installation](#installation-hammer)
+- [Comparison table](#comparison-table)
 - Examples:
     - [cancellation & progress capturing](#progress-capturing-and-cancellation)
     - [pause & resume promise](#pause--resume-promises)
@@ -176,6 +177,33 @@ as the default export, other exports values declared as static properties
 - [production CommonJS version](https://unpkg.com/c-promise2/dist/c-promise.cjs.js)
 
 - [production ESM version](https://unpkg.com/c-promise2/dist/c-promise.mjs)
+
+### Comparison table
+
+|                                                                                                 | CPromise                                                                                | BlueBird.js                              | p-cancelable                                                          |
+|-------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------|------------------------------------------|-----------------------------------------------------------------------|
+| `.cancel()` is synchronous                                                                        | ❌* (.cancel emits a cancel signal synchronously, but the cancellation is asynchronous) | ✓                                      | ✓                                                                   |
+| No setup code required to make cancellation work                                                | ✓                                                                                       | ✓                                      | ✓                                                                   |
+| Cancellation type                                                                               | asynchronous, rejection with `CanceledError` follows the special algorithm              | synchronous (ignoring attached callbacks) | synchronous (ignoring attached callbacks) / asynchronous (rejecting)  |
+| onCancel handler to clean up internal tasks                                                     | ✓                                                                                     | ✓                                      | ✓                                                                   |
+| Atomic sub-chains (protected from cancellation by upper chains)                                 | ✓                                                                                     |❌                                      |❌                                                                   |
+| Cancellation flows                                                                              | ✓                                                                                     |❌                                      |❌                                                                   |
+| Custom cancellation reasons                                                                     | ✓                                                                                     |❌                                      | ✓                                                                   |
+| Cancellation composes with other own features, like `.all`, `.race`, `.allSettled`                 | ✓                                                                                     | ✓                                      |❌                                                                   |
+| Chaining/nested promise cancellation  support                                                   | ✓                                                                                     | ✓                                      |❌                                                                   |
+| Generators support for “flat” coroutines (as a functional replacement for ECMA async functions) | ✓                                                                                     | ✓                                      |❌                                                                   |
+| Coroutines cancellation                                                                         | ✓                                                                                     |❌                                      |❌                                                                   |
+| Concurrency limitation                                                                          | ✓                                                                                     | ✓                                      |❌                                                                   |
+| Signals/data flows                                                                              | ✓                                                                                     |❌                                      |❌                                                                   |
+| Chain progress capturing                                                                        | ✓                                                                                     |❌                                      |❌                                                                   |
+| Pause/resume support                                                                            | ✓                                                                                     |❌                                      |❌                                                                   |
+| timeouts                                                                                        | ✓                                                                                     | ✓                                      |❌                                                                   |
+| AbortController support (outer/inner)                                                           | ✓/✓                                                                                 |❌                                      |❌                                                                   |
+| `.catch` errors filter                                                                            | ✓                                                                                     | ✓                                      |❌                                                                   |
+| `.delay` helper                                                                                   | ✓                                                                                     | ✓                                      |❌                                                                   |
+| ECMA decorators for methods (legacy/current)                                                    | ✓/✓                                                                                 |❌                                      |❌                                                                   |
+| Inherited from the native Promise                                                               | ✓                                                                                     |❌                                      |❌                                                                   |
+
 
 ### Examples
 #### Progress capturing and cancellation
