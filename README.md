@@ -1041,14 +1041,19 @@ progress decorator
 **Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
 <a name="module_CPromise..CPromise"></a>
 
-### CPromise~CPromise ⇐ <code>Promise</code>
-CPromise class
+### CPromise~CPromise : <code>object</code>
+Creates a new CPromise instance
 
-**Kind**: inner class of [<code>CPromise</code>](#module_CPromise)  
+**Kind**: inner namespace of [<code>CPromise</code>](#module_CPromise)  
 **Extends**: <code>Promise</code>  
 
-* [~CPromise](#module_CPromise..CPromise) ⇐ <code>Promise</code>
-    * [new CPromise([executor], [options])](#new_module_CPromise..CPromise_new)
+| Param | Type | Description |
+| --- | --- | --- |
+| [executor] | <code>CPromiseExecutorFn</code> | promise executor function that will be invoked in the context of the new CPromise instance |
+| [options] | <code>CPromiseOptions</code> |  |
+
+
+* [~CPromise](#module_CPromise..CPromise) : <code>object</code>
     * _instance_
         * [.signal](#module_CPromise..CPromise+signal) : <code>AbortSignal</code>
         * [.isPending](#module_CPromise..CPromise+isPending) ⇒ <code>Boolean</code>
@@ -1092,7 +1097,7 @@ CPromise class
         * [.toString([entireChain])](#module_CPromise..CPromise+toString) ⇒ <code>string</code>
     * _static_
         * [.isCanceledError(thing)](#module_CPromise..CPromise.isCanceledError) ⇒ <code>boolean</code>
-        * [.delay(ms, value)](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
+        * [.delay(ms, value, [options])](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
         * [.all(iterable, [options])](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
         * [.allSettled(iterable, options)](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
@@ -1100,17 +1105,6 @@ CPromise class
         * [.from(thing, [options])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
         * [.promisify(originalFn, [options])](#module_CPromise..CPromise.promisify) ⇒ <code>function</code>
         * [.run(generatorFn, [options])](#module_CPromise..CPromise.run) ⇒ <code>CPromise</code>
-
-<a name="new_module_CPromise..CPromise_new"></a>
-
-#### new CPromise([executor], [options])
-Creates a new CPromise instance
-
-
-| Param | Type | Description |
-| --- | --- | --- |
-| [executor] | <code>CPromiseExecutorFn</code> | promise executor function that will be invoked in the context of the new CPromise instance |
-| [options] | <code>CPromiseOptions</code> |  |
 
 <a name="module_CPromise..CPromise+signal"></a>
 
@@ -1541,15 +1535,17 @@ Checks if thing is an CanceledError instance
 
 <a name="module_CPromise..CPromise.delay"></a>
 
-#### CPromise.delay(ms, value) ⇒ <code>CPromise</code>
+#### CPromise.delay(ms, value, [options]) ⇒ <code>CPromise</code>
 Returns a CPromise that will be resolved after specified timeout
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| ms | <code>Number</code> | delay before resolve the promise with specified value |
-| value |  |  |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| ms | <code>Number</code> |  | delay before resolve the promise with specified value |
+| value |  |  |  |
+| [options] | <code>object</code> |  |  |
+| [options.progressTick] | <code>number</code> | <code>1000</code> | progress timer tick, must be >= 100ms |
 
 <a name="module_CPromise..CPromise.all"></a>
 

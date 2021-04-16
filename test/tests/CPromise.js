@@ -869,6 +869,7 @@ module.exports = {
       }
     },
   },
+
   'CPromise.retry': {
     'should reject if all retries failed': async () => {
       let counter = 0;
@@ -898,6 +899,30 @@ module.exports = {
         assert.strictEqual(value, 123);
       })
     }
-  }
+  },
 
+  'CPromise.delay': {
+    'progress capturing' : async()=>{
+      let index= 0;
+      const time= 1800;
+      const tick= 500;
+      const calc= (index)=> (index * tick) / time;
+      const arr= [calc(1), calc(2), calc(3), 1];
+
+      return new Promise((resolve, reject)=>{
+        CPromise.run(function*(){
+          yield CPromise.delay(time, undefined, {progressTick: tick});
+        }).progress(v=> {
+          try{
+            assert.ok(Math.abs(v- arr[index])<0.1, `${v}!=${arr[index]} (${arr})`);
+            index++;
+          }catch(err){
+            reject(err);
+          }
+        }).then(()=>{
+          assert.strictEqual(index, 4);
+        }).then(resolve, reject);
+      });
+    }
+  }
 };
