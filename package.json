@@ -1,6 +1,6 @@
 {
   "name": "c-promise2",
-  "version": "0.11.4",
+  "version": "0.11.5",
   "description": "Promise with cancellation, decorators, signals, pause, timeouts, progress capturing and data flow support",
   "author": {
     "name": "Dmitriy Mozgovoy",
