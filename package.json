@@ -36,12 +36,12 @@
     "playground:generator:watch": "nodemon --watch ./playground --watch lib/ --exec \\\"npm run playground:generator\\\"",
     "playground:decorators": "rollup ./playground/src/decorators.js --file ./playground/dist/decorators.build.js --format cjs --config ./playground/rollup.config.js && node playground/dist/decorators.build.js || true",
     "playground:decorators:watch": "nodemon --watch ./playground/src/ --watch lib/ --exec \\\"npm run playground:decorators\\\"",
-    "docs": "jsdoc2md -t jsdoc2md/README.hbs.md lib/c-promise.js > README.md",
+    "docs": "jsdoc2md -t ./jsdoc2md/README.hbs.md ./lib/c-promise.js > ./README.md",
     "docs:namepaths": "jsdoc2md ./lib/c-promise.js --namepaths"
   },
   "husky": {
     "hooks": {
-      "pre-commit": "npm run docs ; git add ."
+      "pre-commit": "npm run docs && git add ."
     }
   },
   "auto-changelog": {
