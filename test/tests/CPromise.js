@@ -867,6 +867,37 @@ module.exports = {
 
         return chain;
       }
+    },
+  },
+  'CPromise.retry': {
+    'should reject if all retries failed': async () => {
+      let counter = 0;
+      return CPromise.retry(function* () {
+        counter++;
+        yield CPromise.delay(100);
+        throw Error('test');
+      }, {retries: 3, delay: 100}).then(() => {
+        assert.fail('was not rejected');
+      }, err => {
+        assert.strictEqual(err.message, 'test');
+        assert.strictEqual(counter, 3);
+      })
+    },
+    'should resolve if some attempt was successful': async () => {
+      let counter = 0;
+      return CPromise.retry(function* () {
+        counter++;
+        yield CPromise.delay(100);
+        if (counter < 2) {
+          throw Error('test');
+        }
+
+        return 123;
+      }, {retries: 3, delay: 100}).then((value) => {
+        assert.strictEqual(counter, 2);
+        assert.strictEqual(value, 123);
+      })
     }
   }
+
 };

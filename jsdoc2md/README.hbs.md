@@ -15,6 +15,7 @@
     - [cancellation & progress capturing](#progress-capturing-and-cancellation)
     - [pause & resume promise](#pause--resume-promises)
     - [concurrent limitation](#concurrency-limitation)
+    - [retry async operation](#concurrency-limitation)
     - [abortable fetch with timeout](#abortable-fetch-with-timeout)
     - [wrapping axios request](#wrapping-axios-request)
     - [**using with React**](#using-with-react)
@@ -92,7 +93,28 @@ Failed: CanceledError: canceled
 chain isCanceled: true
 promise isCanceled: true
 ````
-Using decorators in React component to manage async tasks and protect from [well-known React leak error](https://stackoverflow.com/questions/32903001/react-setstate-on-unmounted-component):
+`CPromise` fully supports writing "flat" cancellable code:
+
+[Codesandbox Live Demo](https://codesandbox.io/s/cpromise-readme-flat-code1-ooq7d?file=/src/index.js)
+
+````javascript
+const p= CPromise.run(function*(){
+  yield CPromise.delay(1000);
+  return 1;
+}).then(function*(v){
+  for(let i=0; i<3; i++) {
+    console.log(`delay [${i}]`);
+    yield CPromise.delay(500);
+  }
+  return v + 2;
+}).then(v=> console.log(`Done: ${v}`));
+
+//setTimeout(()=> p.cancel(), 1000);
+````
+
+You can use decorators to cancel asynchronous tasks inside React components when unmounted,
+thereby preventing the [well-known React leak warning](https://stackoverflow.com/questions/32903001/react-setstate-on-unmounted-component) from appearing:
+
 ````jsx
 export class FetchComponent extends React.Component {
   state = {text: ""};
@@ -348,7 +370,7 @@ function cancelableAxios(url){
     });
 }
 ````
-You can use the [cp-axios package](https://www.npmjs.com/package/cp-axios) to get Axios to work with CPromise.
+Tip: You can use ready for use [cp-axios package](https://www.npmjs.com/package/cp-axios) for this.
 
 ### Concurrency limitation:
 ````javascript
@@ -393,6 +415,40 @@ import cpFetch from "cp-fetch";
     console.log('Done');
 })();
 ````
+
+### Retrying async operations
+
+Use `CPromise.retry` to retry async operations (3 attempts by default) with a delay(by default delay = attempt * 1000ms)
+
+[Live demo](https://codesandbox.io/s/cpromise-readme-retry-example1-hpiu5)
+````javascript
+const p= CPromise.retry(function*(scope, attempt){
+  console.log(`attempt [${attempt}]`);
+  this.innerWeight(3);
+  yield CPromise.delay(1000);
+  yield CPromise.delay(1000);
+  yield CPromise.delay(1000);
+  throw Error('oops');
+}).progress((v) => {
+  console.log(`Progress: ${v}`);
+});
+
+// setTimeout(() => p.cancel(), 5000); stop trying
+````
+[Live demo](https://codesandbox.io/s/cpromise-readme-retry-example1-hpiu5)
+````javascript
+const p= CPromise.retry(async function(attempt){
+  console.log(`attempt [${attempt}]`);
+  await CPromise.delay(1000);
+  await CPromise.delay(1000);
+  await CPromise.delay(1000);
+  throw Error('oops');
+}).progress((v) => {
+  console.log(`Progress: ${v}`);
+});
+````
+
+You can use `.cancel` / `.pause` / `.resume` to control the sequence of attempts.
 
 ### Using with React
 #### React class component
