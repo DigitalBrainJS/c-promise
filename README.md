@@ -1066,6 +1066,7 @@ Creates a new CPromise instance
         * [.onPause(listener)](#module_CPromise..CPromise+onPause) ⇒ <code>CPromise</code>
         * [.onResume(listener)](#module_CPromise..CPromise+onResume) ⇒ <code>CPromise</code>
         * [.onCapture(listener)](#module_CPromise..CPromise+onCapture) ⇒ <code>CPromise</code>
+        * [.onDone(listener)](#module_CPromise..CPromise+onDone)
         * [.totalWeight([weight])](#module_CPromise..CPromise+totalWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.innerWeight([weight])](#module_CPromise..CPromise+innerWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.progress([value], [data], [scope])](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
@@ -1191,6 +1192,17 @@ registers the listener for capture event
 | Param | Type |
 | --- | --- |
 | listener | <code>OnCaptureListener</code> | 
+
+<a name="module_CPromise..CPromise+onDone"></a>
+
+#### cPromise.onDone(listener)
+registers the listener for done event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| listener | <code>CPDoneListener</code> | 
 
 <a name="module_CPromise..CPromise+totalWeight"></a>
 
@@ -1704,6 +1716,16 @@ If value is a number it will be considered as the value for timeout optionIf va
 | Param | Type |
 | --- | --- |
 | CPromise | <code>scope</code> | 
+
+<a name="module_CPromise..CPDoneListener"></a>
+
+### CPromise~CPDoneListener ⇒ <code>CPromise</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+
+| Param | Type |
+| --- | --- |
+| value | <code>\*</code> | 
+| isRejected | <code>boolean</code> | 
 
 <a name="module_CPromise..Signal"></a>
 
