@@ -808,6 +808,24 @@ module.exports = {
       return promise.then(value => {
         assert.deepStrictEqual(value, 123);
       })
+    },
+
+    'should support decorator option': async function(){
+      CPromise.promisify(function* (arg0) {
+        assert.strictEqual(arg0, 8);
+        return yield CPromise.delay(100, 123);
+      }, {
+        decorator: (fn, options) => {
+          return function(scope, arg0, arg1){
+            assert.ok(scope instanceof CPromise, 'scope is not a CPromise context');
+            assert.strictEqual(options.fnType, 'generator');
+            return fn(arg0 + arg1);
+          };
+        },
+        scopeArg: true
+      })(3, 5).then(v => {
+        assert.strictEqual(v, 123);
+      });
     }
   },
 

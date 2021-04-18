@@ -1811,6 +1811,16 @@ If value is a number it will be considered as the value for timeout optionIf va
 | result | <code>\*</code> | 
 | scope | <code>CPromise</code> | 
 
+<a name="module_CPromise..CPPromisifyDecoratorFn"></a>
+
+### CPromise~CPPromisifyDecoratorFn ⇒ <code>function</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| originalFn | <code>function</code> | function to decorate |
+| options | <code>PromisifyOptions</code> |  |
+
 <a name="module_CPromise..PromisifyOptions"></a>
 
 ### CPromise~PromisifyOptions : <code>Object</code>
@@ -1823,6 +1833,7 @@ If value is a number it will be considered as the value for timeout optionIf va
 | [finalize] | <code>PromisifyFinalizeFn</code> | aggregate all passed arguments to an array |
 | [fnType] | <code>&quot;plain&quot;</code> \| <code>&quot;generator&quot;</code> \| <code>&quot;async&quot;</code> |  |
 | [scopeArg] | <code>boolean</code> | pass the CPromise scope as the first argument to the generator function |
+| [decorator] | <code>function</code> | CPPromisifyDecoratorFn |
 
 
 ## License
