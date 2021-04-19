@@ -642,19 +642,38 @@ module.exports = {
     }
   },
 
-  'CPromise.allSettled': async function () {
-    const err = new Error('test1');
-    return CPromise.allSettled([
-      delay(100, 123),
-      CPromise.reject(err),
-      CPromise.resolve(456)
-    ]).then(results => {
-      assert.deepStrictEqual(results, [
-        {status: 'fulfilled', value: 123},
-        {status: 'rejected', reason: err},
-        {status: 'fulfilled', value: 456}
-      ]);
-    })
+  'CPromise.allSettled': {
+    'should aggregate promise results into array of status objects' : async function () {
+      const err = new Error('test1');
+      return CPromise.allSettled([
+        delay(100, 123),
+        CPromise.reject(err),
+        CPromise.resolve(456)
+      ]).then(results => {
+        assert.deepStrictEqual(results, [
+          {status: 'fulfilled', value: 123},
+          {status: 'rejected', reason: err},
+          {status: 'fulfilled', value: 456}
+        ]);
+      })
+    },
+
+    'should support cancellation': async()=>{
+      const chain= CPromise.allSettled([
+        delay(100, 123),
+        delay(500).then(()=> {
+          throw Error('break');
+        })
+      ]).then(results => {
+        assert.fail('was not cancelled');
+      }, err=>{
+        if(!CPromise.isCanceledError(err)){
+          assert.fail(`rejected not with CancelledError`);
+        }
+      })
+
+      setTimeout(()=> chain.cancel(), 200);
+    }
   },
 
   'CPromise.on': {
