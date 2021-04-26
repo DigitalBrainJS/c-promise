@@ -987,6 +987,12 @@ Cancellation reason for the case when the instance will be disposed
 Timeout cancellation reason
 
 **Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.E_REASON_UNMOUNTED"></a>
+
+### CPromise.E\_REASON\_UNMOUNTED
+React specific canceled reason
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
 <a name="module_CPromise.async"></a>
 
 ### CPromise.async : <code>function</code>
@@ -1003,6 +1009,24 @@ listen decorator
 
 ### CPromise.cancel : <code>function</code>
 cancel decorator
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.ReactComponent"></a>
+
+### CPromise.ReactComponent : <code>function</code>
+cancel decorator
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.atomic"></a>
+
+### CPromise.atomic : <code>function</code>
+make CPromise function atomic
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise.done"></a>
+
+### CPromise.done : <code>function</code>
+append `done` chain to the resulting promise of the decorated method
 
 **Kind**: static property of [<code>CPromise</code>](#module_CPromise)  
 <a name="module_CPromise.timeout"></a>
@@ -1086,6 +1110,7 @@ Creates a new CPromise instance
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
         * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
+        * [.finally(finallyHandler)](#module_CPromise..CPromise+finally) ⇒ <code>Promise.&lt;(T\|void)&gt;</code>
         * [.canceled([onCanceled])](#module_CPromise..CPromise+canceled) ⇒ <code>CPromise</code>
         * [.listen(signal)](#module_CPromise..CPromise+listen) ⇒ <code>CPromise</code>
         * [.on(type, listener, [prepend])](#module_CPromise..CPromise+on) ⇒ <code>CPromise</code>
@@ -1097,15 +1122,30 @@ Creates a new CPromise instance
         * [.emitHook(type, ...args)](#module_CPromise..CPromise+emitHook) ⇒ <code>Boolean</code>
         * [.toString([entireChain])](#module_CPromise..CPromise+toString) ⇒ <code>string</code>
     * _static_
+        * [.version](#module_CPromise..CPromise.version) ⇒ <code>string</code>
+        * [.versionNumber](#module_CPromise..CPromise.versionNumber) ⇒ <code>number</code>
         * [.isCanceledError(thing)](#module_CPromise..CPromise.isCanceledError) ⇒ <code>boolean</code>
         * [.delay(ms, value, [options])](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
         * [.all(iterable, [options])](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
-        * [.allSettled(iterable, options)](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
+        * [.allSettled(iterable, [options])](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
         * [.retry(fn, [options])](#module_CPromise..CPromise.retry) ⇒ <code>CPromise</code>
         * [.from(thing, [options])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
         * [.promisify(originalFn, [options])](#module_CPromise..CPromise.promisify) ⇒ <code>function</code>
         * [.run(generatorFn, [options])](#module_CPromise..CPromise.run) ⇒ <code>CPromise</code>
+        * [.async([options])](#module_CPromise..CPromise.async)
+        * [.listen([signals])](#module_CPromise..CPromise.listen)
+        * [.cancel([reason], signal)](#module_CPromise..CPromise.cancel)
+        * [.canceled(onCanceledChain)](#module_CPromise..CPromise.canceled)
+        * [.progress(onProgressHandler)](#module_CPromise..CPromise.progress)
+        * [.ReactComponent(options)](#module_CPromise..CPromise.ReactComponent)
+        * [.timeout(ms)](#module_CPromise..CPromise.timeout)
+        * [.label(str)](#module_CPromise..CPromise.label)
+        * [.innerWeight(weight)](#module_CPromise..CPromise.innerWeight)
+        * [.atomic(atomicType)](#module_CPromise..CPromise.atomic)
+        * [.done(doneHandler)](#module_CPromise..CPromise.done)
+        * [.isPromisifiedFn(fn)](#module_CPromise..CPromise.isPromisifiedFn) ⇒ <code>\*</code> \| <code>boolean</code>
+        * [.isCPromise(thing, anyVersion)](#module_CPromise..CPromise.isCPromise) ⇒ <code>boolean</code>
 
 <a name="module_CPromise..CPromise+signal"></a>
 
@@ -1355,7 +1395,7 @@ Make promise chain atomic (non-cancellable for external signals)
 
 | Param | Type |
 | --- | --- |
-| [type] | <code>number</code> \| <code>boolean</code> \| <code>&quot;disabled&quot;</code> \| <code>&quot;detached&quot;</code> \| <code>&quot;await&quot;</code> | 
+| [type] | <code>AtomicType</code> | 
 
 <a name="module_CPromise..CPromise+cancel"></a>
 
@@ -1417,6 +1457,17 @@ Catches rejection with optionally specified Error class
 | --- | --- |
 | onRejected | <code>function</code> | 
 | [filter] | <code>Error</code> | 
+
+<a name="module_CPromise..CPromise+finally"></a>
+
+#### cPromise.finally(finallyHandler) ⇒ <code>Promise.&lt;(T\|void)&gt;</code>
+Add done chain, whose handler will be invoked in any case with resolved value or rejection error
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| finallyHandler | <code>CPFinallyHandler</code> | 
 
 <a name="module_CPromise..CPromise+canceled"></a>
 
@@ -1534,6 +1585,18 @@ Render promise to String
 | --- | --- | --- | --- |
 | [entireChain] | <code>boolean</code> | <code>false</code> | render the entire promise chain |
 
+<a name="module_CPromise..CPromise.version"></a>
+
+#### CPromise.version ⇒ <code>string</code>
+CPromise version string
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise..CPromise)  
+<a name="module_CPromise..CPromise.versionNumber"></a>
+
+#### CPromise.versionNumber ⇒ <code>number</code>
+CPromise version number
+
+**Kind**: static property of [<code>CPromise</code>](#module_CPromise..CPromise)  
 <a name="module_CPromise..CPromise.isCanceledError"></a>
 
 #### CPromise.isCanceledError(thing) ⇒ <code>boolean</code>
@@ -1588,7 +1651,7 @@ returns a promise that fulfills or rejects as soon as one of the promises in an 
 
 <a name="module_CPromise..CPromise.allSettled"></a>
 
-#### CPromise.allSettled(iterable, options) ⇒ <code>CPromise</code>
+#### CPromise.allSettled(iterable, [options]) ⇒ <code>CPromise</code>
 returns a promise that resolves after all of the given promises have either fulfilled or rejected
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
@@ -1596,7 +1659,7 @@ returns a promise that resolves after all of the given promises have either fulf
 | Param | Type |
 | --- | --- |
 | iterable | <code>Iterable</code> \| <code>Generator</code> \| <code>GeneratorFunction</code> | 
-| options | <code>AllOptions</code> | 
+| [options] | <code>AllOptions</code> | 
 
 <a name="module_CPromise..CPromise.retry"></a>
 
@@ -1655,6 +1718,160 @@ Resolves the generator to an CPromise instance
 | [options.resolveSignatures] | <code>Boolean</code> | resolve extra signatures (like arrays with CPromise.all) |
 | [options.scopeArg] | <code>Boolean</code> | pass the CPromise scope as the first argument to the generator function |
 | [options.context] | <code>\*</code> |  |
+
+<a name="module_CPromise..CPromise.async"></a>
+
+#### CPromise.async([options])
+Decorator to make CPromise async function from generator, ECMA async or callback-styled method
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| [options] | <code>object</code> | 
+| [options.timeout] | <code>object</code> | 
+| [options.label] | <code>object</code> | 
+| [options.innerWeight] | <code>object</code> | 
+| [options.weight] | <code>object</code> | 
+| [options.listen] | <code>object</code> | 
+
+<a name="module_CPromise..CPromise.listen"></a>
+
+#### CPromise.listen([signals])
+Decorator to subscribe CPromise async method to the internal or external controller
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| [signals] | <code>AbortControllerId</code> \| <code>AbortController</code> \| <code>AbortSignal</code> \| <code>Array.&lt;(AbortControllerId\|AbortController\|AbortSignal)&gt;</code> | 
+
+<a name="module_CPromise..CPromise.cancel"></a>
+
+#### CPromise.cancel([reason], signal)
+Decorator to cancel internal or external abort controller before the decorated function invocation.Can be used as a plain function by passing a object context with `.call` or `.apply` methods
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| [reason] | <code>string</code> | 
+| signal | <code>AbortControllerId</code> \| <code>AbortController</code> | 
+
+**Example**  
+```js
+el.onclick= ()=> cancel.call(this, reason, 'myControllerId'); - to use the decorator as a plain function
+```
+<a name="module_CPromise..CPromise.canceled"></a>
+
+#### CPromise.canceled(onCanceledChain)
+Decorator to add an `onCanceled` rejection handler to the resulting promise of the decorated method
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| onCanceledChain | <code>function</code> \| <code>GeneratorFunction</code> | 
+
+<a name="module_CPromise..CPromise.progress"></a>
+
+#### CPromise.progress(onProgressHandler)
+Decorator to subscribe the handler to the `onProgress` event of the resulting promise
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| onProgressHandler | <code>ProgressDecoratorHandler</code> | 
+
+<a name="module_CPromise..CPromise.ReactComponent"></a>
+
+#### CPromise.ReactComponent(options)
+Decorate class as React component
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| options | <code>boolean</code> \| <code>ReactComponentDecoratorOptions</code> | 
+
+<a name="module_CPromise..CPromise.timeout"></a>
+
+#### CPromise.timeout(ms)
+Decorator to set timeout for the resulting promise of the decorated function
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| ms | <code>number</code> | 
+
+<a name="module_CPromise..CPromise.label"></a>
+
+#### CPromise.label(str)
+Decorator to set label for the resulting promise of the decorated function
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| str | <code>string</code> | 
+
+<a name="module_CPromise..CPromise.innerWeight"></a>
+
+#### CPromise.innerWeight(weight)
+Decorator to set innerWeight for the resulting promise of the decorated function
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| weight | <code>number</code> | 
+
+<a name="module_CPromise..CPromise.atomic"></a>
+
+#### CPromise.atomic(atomicType)
+Decorator to set timeout for the resulting promise of the decorated function
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| atomicType | <code>AtomicType</code> | 
+
+<a name="module_CPromise..CPromise.done"></a>
+
+#### CPromise.done(doneHandler)
+append `done` chain to the resulting promise of the decorated method
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| doneHandler | <code>CPDecoratorDoneHandler</code> | 
+
+<a name="module_CPromise..CPromise.isPromisifiedFn"></a>
+
+#### CPromise.isPromisifiedFn(fn) ⇒ <code>\*</code> \| <code>boolean</code>
+Returns promisification strategy that was used to the original function
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| fn | <code>function</code> | 
+
+<a name="module_CPromise..CPromise.isCPromise"></a>
+
+#### CPromise.isCPromise(thing, anyVersion) ⇒ <code>boolean</code>
+Check whether object is CPromise instance
+
+**Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| thing | <code>\*</code> | 
+| anyVersion | <code>boolean</code> | 
 
 <a name="module_CPromise..EventType"></a>
 
@@ -1727,6 +1944,10 @@ If value is a number it will be considered as the value for timeout optionIf va
 | value | <code>\*</code> | 
 | isRejected | <code>boolean</code> | 
 
+<a name="module_CPromise..AtomicType"></a>
+
+### CPromise~AtomicType : <code>number</code> \| <code>boolean</code> \| <code>&quot;disabled&quot;</code> \| <code>&quot;detached&quot;</code> \| <code>&quot;await&quot;</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 <a name="module_CPromise..Signal"></a>
 
 ### CPromise~Signal : <code>String</code> \| <code>Symbol</code>
@@ -1755,6 +1976,18 @@ If value is a number it will be considered as the value for timeout optionIf va
 | type | <code>Signal</code> | 
 | scope | <code>CPromise</code> | 
 | isRoot | <code>Boolean</code> | 
+
+<a name="module_CPromise..CPFinallyHandler"></a>
+
+### CPromise~CPFinallyHandler : <code>function</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+**this**: <code>CPromise</code>  
+
+| Param | Type |
+| --- | --- |
+| settledValue | <code>\*</code> | 
+| isRejected | <code>boolean</code> | 
+| scope | <code>CPromise</code> | 
 
 <a name="module_CPromise..AllOptions"></a>
 
@@ -1827,13 +2060,54 @@ If value is a number it will be considered as the value for timeout optionIf va
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 **Properties**
 
-| Name | Type | Description |
+| Name | Type | Default | Description |
+| --- | --- | --- | --- |
+| [multiArgs] | <code>Boolean</code> |  | aggregate all passed arguments to an array |
+| [finalize] | <code>PromisifyFinalizeFn</code> |  | aggregate all passed arguments to an array |
+| [fnType] | <code>&quot;plain&quot;</code> \| <code>&quot;generator&quot;</code> \| <code>&quot;async&quot;</code> |  |  |
+| [scopeArg] | <code>boolean</code> |  | pass the CPromise scope as the first argument to the generator function |
+| [decorator] | <code>function</code> |  | CPPromisifyDecoratorFn |
+| [alignArgs] | <code>boolean</code> |  | align passed arguments to function definition for callback-styled function |
+| [once] | <code>boolean</code> | <code>true</code> | don't promisify already promisified function |
+| [types] | <code>array.&lt;(&#x27;plain&#x27;\|&#x27;async&#x27;\|&#x27;generator&#x27;)&gt;</code> |  | function types to promisify |
+
+<a name="module_CPromise..AbortControllerId"></a>
+
+### CPromise~AbortControllerId : <code>string</code> \| <code>symbol</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+<a name="module_CPromise..ProgressDecoratorHandler"></a>
+
+### CPromise~ProgressDecoratorHandler : <code>function</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+
+| Param | Type |
+| --- | --- |
+| progress | <code>number</code> | 
+| scope | <code>CPromise</code> | 
+| data | <code>\*</code> | 
+| context | <code>object</code> | 
+
+<a name="module_CPromise..ReactComponentDecoratorOptions"></a>
+
+### CPromise~ReactComponentDecoratorOptions : <code>object</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+**Properties**
+
+| Name | Type | Default |
 | --- | --- | --- |
-| [multiArgs] | <code>Boolean</code> | aggregate all passed arguments to an array |
-| [finalize] | <code>PromisifyFinalizeFn</code> | aggregate all passed arguments to an array |
-| [fnType] | <code>&quot;plain&quot;</code> \| <code>&quot;generator&quot;</code> \| <code>&quot;async&quot;</code> |  |
-| [scopeArg] | <code>boolean</code> | pass the CPromise scope as the first argument to the generator function |
-| [decorator] | <code>function</code> | CPPromisifyDecoratorFn |
+| [subscribeAll] | <code>boolean</code> | <code>false</code> | 
+
+<a name="module_CPromise..CPDecoratorDoneHandler"></a>
+
+### CPromise~CPDecoratorDoneHandler : <code>function</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+
+| Param | Type |
+| --- | --- |
+| value | <code>\*</code> | 
+| isRejected | <code>boolean</code> | 
+| scope | <code>CPromise</code> | 
+| context | <code>object</code> | 
 
 
 ## License

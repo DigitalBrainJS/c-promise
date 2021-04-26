@@ -8,6 +8,8 @@ const {
     innerWeight,
     label,
     canceled,
+    atomic,
+    done,
     progress,
     CanceledError,
     E_REASON_TIMEOUT
@@ -174,7 +176,7 @@ module.exports = {
             })
             @innerWeight(4)
             @async
-            * generator() {
+            *generator() {
                 yield delay(100);
                 yield delay(100);
                 yield delay(100);
@@ -189,5 +191,58 @@ module.exports = {
         return thenable.then(() => {
             assert.strictEqual(stage, 4);
         })
+    },
+
+    "should support atomic decorator": async function () {
+        const klass = class {
+            @async
+            *fn1() {
+                yield delay(100);
+                yield delay(100);
+                yield this.fn2();
+                yield delay(100);
+                yield delay(100);
+            }
+            @label('atomic-fn')
+            @atomic
+            *fn2() {
+                yield delay(100);
+                yield delay(100);
+                yield delay(100);
+                yield delay(100);
+            }
+        }
+
+        const obj = new klass();
+
+        const promise = obj.fn1();
+
+        setTimeout(()=>{
+            promise.cancel();
+        }, 300);
+
+        return promise.canceled((err) => {
+            assert.strictEqual(err.scope.label(), 'atomic-fn');
+        })
+    },
+
+    "should support done decorator": async function () {
+        const err= new Error('test');
+        const klass = class {
+            @done(function(value, isRejected, scope){
+                assert.strictEqual(value, err);
+                assert.strictEqual(isRejected, true);
+                assert.ok(this instanceof klass);
+                assert.ok(scope instanceof CPromise);
+            })
+            *fn1() {
+                yield delay(100);
+                throw err;
+            }
+        }
+
+        const obj = new klass();
+
+        return obj.fn1();
     }
 }

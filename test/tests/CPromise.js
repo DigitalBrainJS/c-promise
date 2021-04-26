@@ -848,6 +848,29 @@ module.exports = {
     }
   },
 
+  'CPromise#finally': {
+    'should invoke the handler with settled values when the promise done with success or failure': async()=>{
+      let counter= 0;
+      const handler= (value, isRejected, scope)=>{
+        assert.ok(typeof isRejected=='boolean');
+        assert.ok(scope instanceof CPromise);
+        counter++;
+        return value;
+      }
+      const err= new Error('test');
+      return CPromise.all([
+        CPromise.delay(100, 123).finally(handler),
+        CPromise.reject(err).delay(100).finally(handler),
+      ]).then((results)=>{
+        assert.strictEqual(counter, 2);
+        assert.deepStrictEqual(results, [
+          123,
+          err
+        ])
+      })
+    }
+  },
+
   'CPromise#atomic': {
     'atomic("detached")': {
       'should protect promise chain from canceling from outside and keep it running in the background': async () => {

@@ -1,0 +1,44 @@
+body {
+    padding: 10px;
+}
+
+.App {
+    font-family: sans-serif;
+    text-align: center;
+}
+
+.field-url {
+    width: 450px;
+    height: 40px;
+    font-size: 12px;
+}
+
+.btn-change {
+    margin: 5px;
+}
+
+.component {
+    margin: 20px 0px;
+    border: 1px solid black;
+    width: 500px;
+    padding: 5px;
+}
+
+.component * {
+    margin: 5px;
+}
+
+form {
+    display: inline;
+}
+
+.component > .caption {
+    background-color: #535353;
+    color: white;
+    margin: 0px;
+    padding: 5px 10px;
+}
+
+#timeout-input {
+    width: 200px;
+}
