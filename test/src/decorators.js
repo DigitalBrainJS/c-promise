@@ -12,6 +12,7 @@ const {
     done,
     progress,
     CanceledError,
+    ReactComponent,
     E_REASON_TIMEOUT
 } = require('../../lib/c-promise');
 
@@ -244,5 +245,27 @@ module.exports = {
         const obj = new klass();
 
         return obj.fn1();
+    },
+
+    "should support ReactComponent decorator": async function () {
+        @ReactComponent
+        class klass{
+            *componentDidMount(scope) {
+                assert.ok(scope instanceof CPromise);
+                yield delay(100);
+                return 123;
+            }
+
+            *componentWillUnmount(scope){
+                assert.ok(scope instanceof CPromise);
+                yield delay(100);
+                return 456;
+            }
+        }
+
+        const obj = new klass();
+
+        assert.strictEqual(await obj.componentDidMount(), 123);
+        assert.strictEqual(await obj.componentWillUnmount(), 456);
     }
 }
