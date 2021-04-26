@@ -544,8 +544,77 @@ function MyComponent(props) {
 }
 ````
 #### React class component with CPromise decorators
-With CPromise decorators, a generic React class component might look like this one:
-[Demo](https://codesandbox.io/s/react-fetch-classes-decorators-tiny-forked-34vf2?file=/src/TestComponent.js)
+With CPromise decorators, a generic React class component that fetches JSON might look like the following:
+
+[Live Demo](https://codesandbox.io/s/react-fetch-classes-decorators-tiny-forked-r390h?file=/src/TestComponent.js)
+````jsx
+import React, { Component } from "react";
+import {
+  CPromise,
+  CanceledError,
+  ReactComponent,
+  E_REASON_UNMOUNTED,
+  listen,
+  cancel
+} from "c-promise2";
+import cpAxios from "cp-axios";
+
+@ReactComponent
+class TestComponent extends Component {
+  state = {
+    text: ""
+  };
+
+  *componentDidMount(scope) {
+    console.log("mount", scope);
+    scope.onCancel((err) => console.log(`Cancel: ${err}`));
+    yield CPromise.delay(3000);
+  }
+
+  @listen
+  *fetch() {
+    this.setState({ text: "fetching..." });
+    try {
+      const response = yield cpAxios(this.props.url).timeout(
+        this.props.timeout
+      );
+      this.setState({ text: JSON.stringify(response.data, null, 2) });
+    } catch (err) {
+      CanceledError.rethrow(err, E_REASON_UNMOUNTED);
+      this.setState({ text: err.toString() });
+    }
+  }
+
+  *componentWillUnmount() {
+    console.log("unmount");
+  }
+
+  render() {
+    return (
+      <div className="component">
+        <div className="caption">useAsyncEffect demo:</div>
+        <div>{this.state.text}</div>
+        <button
+          className="btn btn-success"
+          type="submit"
+          onClick={() => this.fetch(Math.round(Math.random() * 200))}
+        >
+          Fetch random character info
+        </button>
+        <button
+          className="btn btn-warning"
+          onClick={() => cancel.call(this, "oops!")}
+        >
+          Cancel request
+        </button>
+      </div>
+    );
+  }
+}
+````
+
+Using some specific decorators we can control our async flow in a declarative way:
+[Live Demo](https://codesandbox.io/s/react-fetch-classes-decorators-tiny-forked-34vf2?file=/src/TestComponent.js)
 ````jsx
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -956,13 +1025,13 @@ Decorates class as React component:
 All events (system and user defined) can be fired only when promises in pending state.
 
 Predefined (system) events:
-- `cancel(reason: CanceledError)` - fired when promise is canceled (rejected with `CanceledError`)
+- `cancel(reason: CanceledError)` - fires when promise is canceled (rejected with `CanceledError`)
 - `pause` - on promise pause request
 - `resume` - on promise resume request
 - `capture(scope: CPromise)` - fired when some consumer directly or above standing in the chain starts progress capturing
 - `progress(value: Number, scope: CPromise, data: Object?)` - fired when promise chain progress changes
 
-Event listener attaching shortcuts (methods binded to the promise instance):
+Event listener attaching shortcuts (methods bound to the promise instance):
 - `onCancel(listener: Function)`
 - `onPause(listener: Function)`
 - `onResume(listener: Function)`

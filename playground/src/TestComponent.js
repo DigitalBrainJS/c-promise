@@ -1,5 +1,4 @@
 import React, {Component} from "react";
-import {useState} from "react";
 import {CPromise, CanceledError, ReactComponent, E_REASON_UNMOUNTED, async, listen, cancel, progress, canceled} from "../../lib/c-promise";
 import cpAxios from "cp-axios";
 
