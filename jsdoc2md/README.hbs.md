@@ -856,6 +856,31 @@ If this argument not specified or null, the internal default AbortController wil
 
 ### @cancel([reason: String], [signal: AbortSignal|String|Symbol])
 Emits the cancel signal before the target function invoking.
+It can be called as a function, passing the context using `.call` or `.apply`.
+
+````javascript
+class Klass{
+   @canceled(()=> console.log(`canceled`))
+   @listen('internalControllerId')
+   *bar(){
+     yield CPromise.delay(1000);
+     console.log('done!');
+   }
+
+   @cancel('E_SOME_REASON', 'internalControllerId')
+   *baz(){
+   
+   }
+}
+const instance= new Klass;
+
+instance.bar().then(console.log, console.warn);
+
+// cancel bar execution
+cancel.call(intance, E_SOME_REASON, 'internalControllerId');
+// calling `baz` will terminate the `bar` execution as well
+instance.baz();
+````
 
 ### @canceled([onRejected(err, scope, context): Function])
 Catches rejections with CanceledError errors
@@ -916,6 +941,16 @@ Sets the innerWeight option for the CPromise async function.
 
 ### @label(label: String)
 Sets the label option for the CPromise async function.
+
+### @atomic([atomicType: 'disabled'|'detached'|'await'|true|false])
+Configures decorated CPromise async function as atomic.
+
+### ReactComponent([{subscribeAll?: boolean}])
+Decorates class as React component:
+ - decorates all generator to `CPromise` async function;
+ - subscribes `componentDidMount` method to the internal `AbortController` signal of the class
+ - decorates `componentWillUnmount` with `@cancel` decorator
+ to invoke `AbortController.abort()` before running the method;
 
 ## Events
 All events (system and user defined) can be fired only when promises in pending state.
