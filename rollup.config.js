@@ -1,6 +1,7 @@
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { terser } from "rollup-plugin-terser";
+import json from '@rollup/plugin-json';
 const lib = require("./package.json");
 const outputFileName= 'c-promise';
 const name= "CPromise";
@@ -21,6 +22,7 @@ export default [
                 banner
             },
             plugins: [
+                json(),
                 resolve(),
                 commonjs()
             ]
@@ -35,6 +37,7 @@ export default [
                 banner
             },
             plugins: [
+                json(),
                 resolve(),
                 commonjs()
             ]
@@ -49,6 +52,7 @@ export default [
                 banner
             },
             plugins: [
+                json(),
                 resolve(),
                 commonjs(),
                 terser()
@@ -64,6 +68,7 @@ export default [
                 banner
             },
             plugins: [
+                json(),
                 resolve(),
                 commonjs()
             ]
