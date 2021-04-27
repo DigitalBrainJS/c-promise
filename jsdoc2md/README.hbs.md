@@ -19,13 +19,13 @@
     - [abortable fetch with timeout](#abortable-fetch-with-timeout)
     - [wrapping axios request](#wrapping-axios-request)
     - [**using with React**](#using-with-react)
-        - [React class component](#react-class-component)
-        - [React functional component](#react-functional-component)
-        - [React class component with CPromise decorators](#react-class-component-with-cpromise-decorators)
+        - [React class components with CPromise decorators](#react-class-components-with-cpromise-decorators)
+        - [React functional components](#react-functional-components)
 - [Signals handling](#signals-handling)
 - [Using generators](#using-generators-as-an-alternative-of-ecma-async-functions)    
 - [Atomic sub-chains](#atomic-sub-chains)
 - [Using decorators](#using-decorators)    
+    - [@ReactComponent](#reactcomponentsubscribeall-boolean)
     - [@async](#asynctimeout-number-innerweight-number-label--string-weight-number)
     - [@listen](#listensignal-abortsignalstringsymbol)
     - [@cancel](#cancelreason-string-signal-abortsignalstringsymbol)
@@ -34,6 +34,8 @@
     - [@innerWeight](#innerweightweight-number)
     - [@label](#labellabel-string)
     - [@progress](#progresshandler-function)
+    - [@done](#donedonehandlervalue-isrejected-scope-context)
+    - [@atomic](#atomicatomictype-disableddetachedawaittruefalse)
 - [Events](#events) 
 - [`then` method behavior notes](#then-method-behavior-notes)
 - [Related projects](#related-projects) 
@@ -115,28 +117,60 @@ const p= CPromise.run(function*(){
 You can use decorators to cancel asynchronous tasks inside React components when unmounted,
 thereby preventing the [well-known React leak warning](https://stackoverflow.com/questions/32903001/react-setstate-on-unmounted-component) from appearing:
 
+[Codesandbox Live Demo](https://codesandbox.io/s/react-fetch-classes-react-component-decorator-tiny-kugmw?file=/src/TestComponent.js)
 ````jsx
+import React, { Component } from "react";
+import { ReactComponent, timeout, cancel } from "c-promise2";
+import cpFetch from "cp-fetch";
+
+@ReactComponent
 export class FetchComponent extends React.Component {
-  state = {text: ""};
+  state = {text: "fetching..."};
 
   @timeout(5000)
-  @listen
-  @async
   *componentDidMount() {
     const response = yield cpFetch(this.props.url);
     this.setState({ text: `json: ${yield response.text()}` });
   }
 
   render() {
-    return <div>{this.state.text}</div>;
+    return (
+      <div>
+        <span>{this.state.text}</span>
+        <button onClick={() => cancel.call(this)}>Cancel request</button>
+      </div>);
   }
-
-  @cancel()
-  componentWillUnmount() {}
 }
 ````
+If you prefer function components you can use [`use-async-effect2`](https://www.npmjs.com/package/use-async-effect2)
+package that decorates CPromise into custom React hooks - `useAsyncEffect` and `useAsyncCallback`:
 
-## Why :question:
+[Live demo](https://codesandbox.io/s/use-async-effect-fetch-tiny-ui-xbmk2?file=/src/TestComponent.js)
+````javascript
+import React from "react";
+import {useState} from "react";
+import {useAsyncEffect} from "use-async-effect2";
+import cpFetch from "cp-fetch";
+
+function FetchComponent(props) {
+    const [text, setText] = useState("");
+
+    const cancel= useAsyncEffect(function* () {
+            setText("fetching..."); 
+            const response = yield cpFetch(props.url); // will throw a CanceledError if component get unmounted
+            const json = yield response.json();
+            setText(`Success: ${JSON.stringify(json)}`);
+    }, [props.url]);
+
+    return (
+      <div>
+      <span>{text}</span>
+      <button onClick={cancel}>Cancel request</button>
+      </div>
+    );
+}
+````
+# Why :question:
 
 You may run into a problem when you need to cancel some long-term asynchronous
 operation before it will be completed with success or failure, just because the result
@@ -451,99 +485,9 @@ const p= CPromise.retry(async function(attempt){
 You can use `.cancel` / `.pause` / `.resume` to control the sequence of attempts.
 
 ### Using with React
-#### React class component
-Check out this [live demo](https://codesandbox.io/s/infallible-ardinghelli-7r6o8?file=/src/App.js)
-````jsx
- import CPromise from "c-promise2";
- import cFetch from "cp-fetch";
 
- export class AsyncComponent extends React.Component {
- state = {};
+#### React class components with CPromise decorators
 
- async componentDidMount() {
-    console.log("mounted");
-    this.controller = new CPromise.AbortController();
-    try {
-      const json = await this.myAsyncTask(
-        "https://run.mocky.io/v3/7b038025-fc5f-4564-90eb-4373f0721822"
-      );
-      console.log("json:", json);
-      await this.myAsyncTaskWithDelay(1000, 123); // just another async task
-      this.setState({ text: JSON.stringify(json) });
-    } catch (err) {
-      if (CPromise.isCanceledError(err)) {
-        console.log("tasks terminated");
-      }
-    }
-  }
-
-  myAsyncTask(url) {
-    return CPromise.from(function* () {
-      const response = yield cFetch(url); // cancellable request
-      // some another promises here
-      return yield response.json();
-    }).listen(this.controller.signal);
-  }
-
-  // another one cancellable async task
-  myAsyncTaskWithDelay(ms, value) {
-    return new CPromise((resolve, reject, { onCancel }) => {
-      const timer = setTimeout(resolve, ms, value);
-      onCancel(() => {
-        console.log("timeout cleared");
-        clearTimeout(timer);
-      });
-    }).listen(this.controller.signal);
-  }
-
-  render() {
-    return (
-      <div>
-        AsyncComponent: <span>{this.state.text}</span>
-      </div>
-    );
-  }
-  componentWillUnmount() {
-    console.log("unmounted");
-    this.controller.abort(); // kill all tasks
-  }
-}
-````
-#### React functional component
-Using hooks and CPromise `cancel` method [Live Demo](https://codesandbox.io/s/react-cpromise-fetch-promisify-forked-3h4v2?file=/src/MyComponent.js):
-````jsx
-import React, { useEffect, useState } from "react";
-import { CPromise, CanceledError } from "c-promise2";
-import cpFetch from "cp-fetch";
-
-function MyComponent(props) {
-  const [text, setText] = useState("fetching...");
-
-  useEffect(() => {
-    console.log("mount");
-    const promise = CPromise.from(function* () {
-      try {
-        const response = yield cpFetch(props.url);
-        const json = yield response.json();
-        yield CPromise.delay(1000);
-        setText(`Success: ${JSON.stringify(json)}`);
-      } catch (err) {  
-        console.warn(err);
-        CanceledError.rethrow(err);
-        setText(`Failed: ${err}`);
-      }
-    });
-
-    return () => {
-      console.log("unmount");
-      promise.cancel();
-    };
-  }, [props.url]);
-
-  return <p>{text}</p>;
-}
-````
-#### React class component with CPromise decorators
 With CPromise decorators, a generic React class component that fetches JSON might look like the following:
 
 [Live Demo](https://codesandbox.io/s/react-fetch-classes-decorators-tiny-forked-r390h?file=/src/TestComponent.js)
@@ -612,6 +556,10 @@ class TestComponent extends Component {
   }
 }
 ````
+#### React functional components
+
+To use `CPromise` powers in functional components use [`use-async-effect2`](https://www.npmjs.com/package/use-async-effect2)
+hooks
 
 Using some specific decorators we can control our async flow in a declarative way:
 [Live Demo](https://codesandbox.io/s/react-fetch-classes-decorators-tiny-forked-34vf2?file=/src/TestComponent.js)
@@ -650,61 +598,6 @@ It automatically manages async code i.g request, so it protects from warning app
 
 `Warning: Can’t perform a React state update on an unmounted component.`
 
-More complex example:
-[Demo](https://codesandbox.io/s/react-fetch-classes-decorators-forked-oyjf7?file=/src/TestComponent.js)
-````jsx
-import React from "react";
-import {
-  CPromise,
-  async,
-  listen,
-  cancel,
-  timeout,
-  canceled,
-  E_REASON_DISPOSED
-} from "c-promise2";
-import cpFetch from "cp-fetch";
-
-export class TestComponent extends React.Component {
-  state = {};
-
-  @canceled(function (err) {
-    console.warn(`Canceled: ${err}`);
-    if (err.code !== E_REASON_DISPOSED) {
-      this.setState({ text: err + "" });
-    }
-  })
-  @listen
-  @async
-  *componentDidMount() {
-    console.log("mounted");
-    const json = yield this.fetchJSON(
-      "https://run.mocky.io/v3/7b038025-fc5f-4564-90eb-4373f0721822?mocky-delay=2s"
-    );
-    this.setState({ text: JSON.stringify(json) });
-  }
-
-  @timeout(5000)
-  @async
-  *fetchJSON(url) {
-    const response = yield cpFetch(url); // cancellable request
-    return yield response.json();
-  }
-
-  render() {
-    return (
-      <div>
-        AsyncComponent: <span>{this.state.text || "fetching..."}</span>
-      </div>
-    );
-  }
-
-  @cancel(E_REASON_DISPOSED)
-  componentWillUnmount() {
-    console.log("unmounted");
-  }
-}
-````
 ## Signals handling
 Every CPromise instance can handle "signals", emitted using `emitSignal` method. 
 The method emits a `signal` event on each pending promise in the chain until some handler returns `true` as the result.
@@ -892,6 +785,13 @@ The library supports a few types of decorators to make your code cleaner.
 All decorators are isomorphic- `@async` and `@async()` are totally equal.
 Also, they support both current and legacy decorator's specification.
 
+### ReactComponent([{subscribeAll?: boolean}])
+Decorates class as React component:
+ - decorates all generator to `CPromise` async function;
+ - subscribes `componentDidMount` method to the internal `AbortController` signal of the class
+ - decorates `componentWillUnmount` with `@cancel` decorator
+ to invoke `AbortController.abort()` before running the method;
+
 ### @async([{timeout?: Number, innerWeight?: Number, label? : String, weight?: Number}])
 Wraps a generator function into an async function, that returns CPromise instance.
 ````javascript
@@ -1011,15 +911,11 @@ Sets the innerWeight option for the CPromise async function.
 ### @label(label: String)
 Sets the label option for the CPromise async function.
 
+### @done([doneHandler(value, isRejected, scope, context)])
+Decorates async function with `done` chain
+
 ### @atomic([atomicType: 'disabled'|'detached'|'await'|true|false])
 Configures decorated CPromise async function as atomic.
-
-### ReactComponent([{subscribeAll?: boolean}])
-Decorates class as React component:
- - decorates all generator to `CPromise` async function;
- - subscribes `componentDidMount` method to the internal `AbortController` signal of the class
- - decorates `componentWillUnmount` with `@cancel` decorator
- to invoke `AbortController.abort()` before running the method;
 
 ## Events
 All events (system and user defined) can be fired only when promises in pending state.

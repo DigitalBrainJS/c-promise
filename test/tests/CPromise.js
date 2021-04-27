@@ -848,7 +848,7 @@ module.exports = {
     }
   },
 
-  'CPromise#finally': {
+  'CPromise#done': {
     'should invoke the handler with settled values when the promise done with success or failure': async()=>{
       let counter= 0;
       const handler= (value, isRejected, scope)=>{
@@ -859,13 +859,35 @@ module.exports = {
       }
       const err= new Error('test');
       return CPromise.all([
-        CPromise.delay(100, 123).finally(handler),
-        CPromise.reject(err).delay(100).finally(handler),
+        CPromise.delay(100, 123).done(handler),
+        CPromise.reject(err).delay(100).done(handler),
       ]).then((results)=>{
         assert.strictEqual(counter, 2);
         assert.deepStrictEqual(results, [
           123,
           err
+        ])
+      })
+    }
+  },
+
+  'CPromise#finally': {
+    'should invoke the handler that will be invoked when promise settled': async()=>{
+      let counter= 0;
+      const handler= (value, isRejected, scope)=>{
+        assert.ok(typeof isRejected=='boolean');
+        assert.ok(scope instanceof CPromise);
+        counter++;
+      }
+      const err= new Error('test');
+      return CPromise.allSettled([
+        CPromise.delay(100, 123).finally(handler),
+        CPromise.reject(err).delay(100).finally(handler),
+      ]).then((results)=>{
+        assert.strictEqual(counter, 2);
+        assert.deepStrictEqual(results, [
+          {status: 'fulfilled', value: 123},
+          {status: 'rejected', reason : err},
         ])
       })
     }
