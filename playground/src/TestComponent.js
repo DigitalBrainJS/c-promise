@@ -2,8 +2,14 @@ import React, {Component} from "react";
 import {CPromise, CanceledError, ReactComponent, E_REASON_UNMOUNTED, async, listen, cancel, progress, canceled} from "../../lib/c-promise";
 import cpAxios from "cp-axios";
 
+class ProtoComponent extends Component{
+    onClick2(){
+        console.log('ProtoComponent::click2', this);
+    }
+}
+
 @ReactComponent
-class TestComponent extends Component{
+class TestComponent extends ProtoComponent{
     state = {
         text: ""
     };
@@ -12,6 +18,11 @@ class TestComponent extends Component{
         console.log('mount', scope);
         scope.onCancel((err)=> console.log(`Cancel: ${err}`));
         yield CPromise.delay(3000);
+    }
+
+    onClick2(){
+        console.log('TestComponent::click2', this);
+        super.onClick2();
     }
 
     @listen
@@ -36,14 +47,14 @@ class TestComponent extends Component{
             <div>{this.state.text}</div>
             <button
               className="btn btn-success"
-              type="submit"
-              onClick={() => this.fetch(Math.round(Math.random() * 200))}
+              onClick={this.fetch}
             >
                 Fetch random character info
             </button>
             <button className="btn btn-warning" onClick={()=>cancel.call(this, 'oops!')}>
                 Cancel request
             </button>
+            <button className="btn btn-info"  onClick={this.onClick2}>Listener binding test</button>
         </div>
     }
 }

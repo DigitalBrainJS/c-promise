@@ -139,7 +139,7 @@
     "bootstrap": "^4.6.0",
     "concurrently": "^6.0.2",
     "coveralls": "^3.1.0",
-    "cp-axios": "^0.1.12",
+    "cp-axios": "^0.2.0",
     "cross-env": "^7.0.3",
     "husky": "^4.3.8",
     "install": "^0.13.0",

@@ -117,7 +117,7 @@ const p= CPromise.run(function*(){
 You can use decorators to cancel asynchronous tasks inside React components when unmounted,
 thereby preventing the [well-known React leak warning](https://stackoverflow.com/questions/32903001/react-setstate-on-unmounted-component) from appearing:
 
-[Codesandbox Live Demo](https://codesandbox.io/s/react-fetch-classes-react-component-decorator-tiny-kugmw?file=/src/TestComponent.js)
+[Codesandbox Live Demo](https://codesandbox.io/s/react-fetch-classes-decorators-tiny-forked-r390h?file=/src/TestComponent.js)
 ````jsx
 import React, { Component } from "react";
 import { ReactComponent, timeout, cancel } from "c-promise2";
@@ -556,10 +556,6 @@ class TestComponent extends Component {
   }
 }
 ````
-#### React functional components
-
-To use `CPromise` powers in functional components use [`use-async-effect2`](https://www.npmjs.com/package/use-async-effect2)
-hooks
 
 Using some specific decorators we can control our async flow in a declarative way:
 [Live Demo](https://codesandbox.io/s/react-fetch-classes-decorators-tiny-forked-34vf2?file=/src/TestComponent.js)
@@ -597,6 +593,11 @@ export class TestComponent extends React.Component {
 It automatically manages async code i.g request, so it protects from warning appearing like:
 
 `Warning: Can’t perform a React state update on an unmounted component.`
+
+#### React functional components
+
+To use `CPromise` powers in functional components use [`use-async-effect2`](https://www.npmjs.com/package/use-async-effect2)
+hooks
 
 ## Signals handling
 Every CPromise instance can handle "signals", emitted using `emitSignal` method. 
@@ -785,12 +786,21 @@ The library supports a few types of decorators to make your code cleaner.
 All decorators are isomorphic- `@async` and `@async()` are totally equal.
 Also, they support both current and legacy decorator's specification.
 
-### ReactComponent([{subscribeAll?: boolean}])
+### ReactComponent([{subscribeAll?: boolean, bindListeners?: boolean, bindMethods?:boolean}])
 Decorates class as React component:
  - decorates all generator to `CPromise` async function;
  - subscribes `componentDidMount` method to the internal `AbortController` signal of the class
  - decorates `componentWillUnmount` with `@cancel` decorator
  to invoke `AbortController.abort()` before running the method;
+ - performs lazy event listeners binding (activated by default with `bindListeners` option). 
+ All user methods, whose name staring with `on[A-Z]` considering as event listeners.
+  - performs lazy user methods binding (activated by default with `bindMethods` option). 
+  #### options
+  - `subscribeAll` - subscribe all async instance methods to the internal abort controller. 
+  By default, only `componentDidMount` will subscribe to the controller.
+  - `bindListeners` - activates lazy binding for all listeners methods, 
+  whose name staring with `on[A-Z]` considering as event listeners.
+  - `bindMethods` - activates lazy binding for all non-listeners methods.
 
 ### @async([{timeout?: Number, innerWeight?: Number, label? : String, weight?: Number}])
 Wraps a generator function into an async function, that returns CPromise instance.
@@ -828,33 +838,6 @@ Emits the cancel signal before the target function invoking.
 It can be called as a function, passing the context using `.call` or `.apply`.
 
 ````javascript
-class Klass{
-   @canceled(()=> console.log(`canceled`))
-   @listen('internalControllerId')
-   *bar(){
-     yield CPromise.delay(1000);
-     console.log('done!');
-   }
-
-   @cancel('E_SOME_REASON', 'internalControllerId')
-   *baz(){
-   
-   }
-}
-const instance= new Klass;
-
-instance.bar().then(console.log, console.warn);
-
-// cancel bar execution
-cancel.call(intance, E_SOME_REASON, 'internalControllerId');
-// calling `baz` will terminate the `bar` execution as well
-instance.baz();
-````
-
-### @canceled([onRejected(err, scope, context): Function])
-Catches rejections with CanceledError errors
-
-````javascript
 import cpFetch from "cpFetch";
 
 class Test{
@@ -878,6 +861,33 @@ class Test{
         // your code here
     }
 }
+````
+
+### @canceled([onRejected(err, scope, context): Function])
+Catches rejections with CanceledError errors
+
+````javascript
+class Klass{
+   @canceled(()=> console.log(`canceled`))
+   @listen('internalControllerId')
+   *bar(){
+     yield CPromise.delay(1000);
+     console.log('done!');
+   }
+
+   @cancel('E_SOME_REASON', 'internalControllerId')
+   *baz(){
+   
+   }
+}
+const instance= new Klass;
+
+instance.bar().then(console.log, console.warn);
+
+// cancel bar execution
+cancel.call(intance, E_SOME_REASON, 'internalControllerId');
+// calling `baz` will terminate the `bar` execution as well
+instance.baz();
 ````
 
 ### @progress(handler: Function)
