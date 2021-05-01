@@ -1653,7 +1653,7 @@ Returns a single CPromise that resolves to an array of the results of the input 
 
 | Param | Type |
 | --- | --- |
-| iterable | <code>Iterable</code> \| <code>Generator</code> \| <code>GeneratorFunction</code> | 
+| iterable | <code>Iterable</code> \| <code>Generator</code> \| <code>GeneratorFunction</code> \| <code>array</code> | 
 | [options] | <code>AllOptions</code> | 
 
 **Example**  
