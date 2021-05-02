@@ -37,10 +37,6 @@ class TestComponent extends ProtoComponent{
         }
     }
 
-    *componentWillUnmount() {
-        console.log('unmount');
-    }
-
     render() {
         return <div className="component">
             <div className="caption">useAsyncEffect demo:</div>
@@ -49,7 +45,7 @@ class TestComponent extends ProtoComponent{
               className="btn btn-success"
               onClick={this.fetch}
             >
-                Fetch random character info
+                Fetch data
             </button>
             <button className="btn btn-warning" onClick={()=>cancel.call(this, 'oops!')}>
                 Cancel request
