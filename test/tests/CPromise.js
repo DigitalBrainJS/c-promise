@@ -471,22 +471,31 @@ module.exports = {
 
         return chain;
       },
-      'should support progress capturing': async function () {
-        const expected = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1];
-        let index = 0;
+      'progress capturing': {
+        'should support progress capturing': async function () {
+          const expected = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1];
+          let index = 0;
 
-        const chain = CPromise.from(function* () {
-          this.innerWeight(10)
-          let i = 10;
-          while (--i > 0) {
+          const fn= CPromise.promisify(function*(){
+            this.innerWeight(2);
             yield CPromise.delay(100);
-          }
-        }).progress(value => {
-          assert.equal(value, expected[index]);
-          index++;
-        });
+            yield CPromise.delay(100);
+          })
 
-        return chain;
+          const chain = CPromise.from(function* () {
+            this.innerWeight(10);
+            let i = 9;
+            while (--i >= 0) {
+              yield CPromise.delay(100);
+            }
+            yield fn();
+          }).progress(value => {
+            assert.equal(value, expected[index], `${value}!=${expected[index]} progress tick value`);
+            index++;
+          });
+
+          return chain;
+        }
       },
 
       'should proxy signals': async function () {
