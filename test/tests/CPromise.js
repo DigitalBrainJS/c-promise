@@ -1,5 +1,5 @@
 const assert = require('assert');
-const {CPromise} = require('../../lib/c-promise');
+const {CPromise, E_REASON_CANCELED, E_REASON_UNMOUNTED} = require('../../lib/c-promise');
 const {CanceledError} = CPromise;
 
 const delay = (ms, value, options) => new CPromise(resolve => setTimeout(() => resolve(value), ms), options);
@@ -205,6 +205,22 @@ module.exports = {
       assert.equal(firstCanceled, true);
       assert.equal(secondCanceled, true);
       assert.equal(rootCanceled, true);
+    },
+
+    'should respect the priority of the CanceledError': async function(){
+      const chain= CPromise.delay(100).atomic().delay(100).delay(100);
+
+      chain.cancel(E_REASON_CANCELED);
+
+      await CPromise.delay(50);
+
+      chain.cancel(E_REASON_UNMOUNTED);
+
+      return chain.then(()=>{
+        assert.fail('was not cancelled');
+      }, (err)=>{
+        assert.strictEqual(err.code, E_REASON_UNMOUNTED);
+      })
     }
   },
 
@@ -314,7 +330,7 @@ module.exports = {
         }
       };
 
-      const promise = CPromise.from(obj);
+      const promise = CPromise.resolve(obj);
 
       assert.ok(invoked);
       assert.ok(promise instanceof CPromise);
@@ -380,7 +396,7 @@ module.exports = {
     }
   },
 
-  'CPromise.from': {
+  'CPromise.resolve': {
     'should convert thing to a CPromise instance': async function () {
       let isCanceled = false;
       const thenable = {
@@ -391,7 +407,7 @@ module.exports = {
         }
       }
 
-      const chain = CPromise.from(thenable).then(() => {
+      const chain = CPromise.resolve(thenable).then(() => {
         assert.fail('not canceled');
       }, (err) => {
         assert.ok(err instanceof CanceledError);
@@ -405,16 +421,17 @@ module.exports = {
 
     'generator': {
       'should resolve generator to a CPromise': function () {
-        assert.ok(CPromise.from(function* () {
+        assert.ok(CPromise.resolve(function* () {
         }) instanceof CPromise);
       },
+
       'should resolve internal chains': async function () {
         const timestamp = Date.now();
         const time = () => Date.now() - timestamp;
 
         const delay = (ms, value) => new Promise(resolve => setTimeout(resolve, ms, value));
 
-        return CPromise.from(function* () {
+        return CPromise.resolve(function* () {
           const resolved1 = yield CPromise.delay(105, 123);
           assert.ok(time() >= 100);
           assert.equal(resolved1, 123);
@@ -426,7 +443,7 @@ module.exports = {
       'should reject the promise if generator thrown an error': async function () {
         const timestamp = Date.now();
         const time = () => Date.now() - timestamp;
-        return CPromise.from(function* () {
+        return CPromise.resolve(function* () {
           const timestamp = Date.now();
           const time = () => Date.now() - timestamp;
           yield CPromise.delay(105);
@@ -438,6 +455,7 @@ module.exports = {
           assert.equal(err.message, 'test');
         })
       },
+
       'should support cancellation': async function () {
         let thrown = false;
         let canceledInternals = false;
@@ -449,7 +467,7 @@ module.exports = {
           setTimeout(resolve, ms);
         });
 
-        const chain = CPromise.from(function* () {
+        const chain = CPromise.resolve(function* () {
           yield CPromise.delay(100);
           try {
             yield delay(100);
@@ -471,6 +489,7 @@ module.exports = {
 
         return chain;
       },
+
       'progress capturing': {
         'should support progress capturing': async function () {
           const expected = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1];
@@ -482,7 +501,7 @@ module.exports = {
             yield CPromise.delay(100);
           })
 
-          const chain = CPromise.from(function* () {
+          return CPromise.resolve(function* () {
             this.innerWeight(10);
             let i = 9;
             while (--i >= 0) {
@@ -493,13 +512,11 @@ module.exports = {
             assert.equal(value, expected[index], `${value}!=${expected[index]} progress tick value`);
             index++;
           });
-
-          return chain;
         }
       },
 
       'should proxy signals': async function () {
-        const chain = CPromise.from(function* () {
+        const chain = CPromise.resolve(function* () {
           yield new CPromise((resolve, reject, scope) => {
             scope.on('signal', (type, data) => {
               assert.equal(type, 'test');

@@ -1115,9 +1115,10 @@ Creates a new CPromise instance
         * [.pause()](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
         * [.resume()](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
         * [.atomic([type])](#module_CPromise..CPromise+atomic) ⇒
-        * [.cancel([reason], [force])](#module_CPromise..CPromise+cancel)
+        * [.cancel([reason], [forced])](#module_CPromise..CPromise+cancel)
         * [.emitSignal(type, [data], [handler], [locator])](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
         * [.delay(ms)](#module_CPromise..CPromise+delay) ⇒ <code>CPromise</code>
+        * [.aggregate([weight])](#module_CPromise..CPromise+aggregate) ⇒ <code>CPromise</code>
         * [.then(onFulfilled, [onRejected])](#module_CPromise..CPromise+then) ⇒ <code>CPromise</code>
         * [.catch(onRejected, [filter])](#module_CPromise..CPromise+catch) ⇒ <code>CPromise</code>
         * [.finally(onFinally)](#module_CPromise..CPromise+finally) ⇒ <code>Promise.&lt;(T\|void)&gt;</code>
@@ -1141,7 +1142,7 @@ Creates a new CPromise instance
         * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
         * [.allSettled(iterable, [options])](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
         * [.retry(fn, [options])](#module_CPromise..CPromise.retry) ⇒ <code>CPromise</code>
-        * [.from(thing, [options])](#module_CPromise..CPromise.from) ⇒ <code>CPromise</code>
+        * [.resolve(thing, [options])](#module_CPromise..CPromise.resolve) ⇒ <code>CPromise</code>
         * [.promisify(originalFn, [options])](#module_CPromise..CPromise.promisify) ⇒ <code>function</code>
         * [.run(generatorFn, [options])](#module_CPromise..CPromise.run) ⇒ <code>CPromise</code>
         * [.async([options])](#module_CPromise..CPromise.async)
@@ -1410,7 +1411,7 @@ Make promise chain atomic (non-cancellable for external signals)
 
 <a name="module_CPromise..CPromise+cancel"></a>
 
-#### cPromise.cancel([reason], [force])
+#### cPromise.cancel([reason], [forced])
 throws the CanceledError that cause promise chain cancellation
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
@@ -1418,7 +1419,7 @@ throws the CanceledError that cause promise chain cancellation
 | Param | Type | Default |
 | --- | --- | --- |
 | [reason] | <code>String</code> \| <code>Error</code> |  | 
-| [force] | <code>Boolean</code> | <code>false</code> | 
+| [forced] | <code>Boolean</code> | <code>false</code> | 
 
 <a name="module_CPromise..CPromise+emitSignal"></a>
 
@@ -1444,6 +1445,17 @@ Returns a chain that will be resolved after specified timeout
 | Param | Type |
 | --- | --- |
 | ms | <code>Number</code> | 
+
+<a name="module_CPromise..CPromise+aggregate"></a>
+
+#### cPromise.aggregate([weight]) ⇒ <code>CPromise</code>
+Aggregate promise chain into one promise
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type | Default |
+| --- | --- | --- |
+| [weight] | <code>number</code> | <code>1</code> | 
 
 <a name="module_CPromise..CPromise+then"></a>
 
@@ -1699,19 +1711,17 @@ Retry async operation
 | [options.delayWeight] | <code>number</code> \| <code>CPRetryDelayResolver</code> | 
 | [options.delay] | <code>object</code> | 
 
-<a name="module_CPromise..CPromise.from"></a>
+<a name="module_CPromise..CPromise.resolve"></a>
 
-#### CPromise.from(thing, [options]) ⇒ <code>CPromise</code>
+#### CPromise.resolve(thing, [options]) ⇒ <code>CPromise</code>
 Converts thing to CPromise using the following rules:- CPromise instance returns as is- Objects with special method defined with key `Symbol.for('toCPromise')` will be converted using this method  The result will be cached for future calls- Thenable wraps into a new CPromise instance, if thenable has the `cancel` method it will be used for canceling- Generator function will be resolved to CPromise- Array will be resoled via `CPromise.all`, arrays with one element (e.g. `[[1000]]`) will be resolved via `CPromise.race`This method returns null if the conversion failed.
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
-| Param | Type | Default |
-| --- | --- | --- |
-| thing | <code>\*</code> |  | 
-| [options] | <code>Object</code> |  | 
-| [options.resolveSignatures] | <code>Boolean</code> | <code>true</code> | 
-| [options.args] | <code>Array</code> |  | 
+| Param | Type |
+| --- | --- |
+| thing | <code>\*</code> | 
+| [options] | <code>resolveOptionsObject</code> \| <code>Boolean</code> | 
 
 <a name="module_CPromise..CPromise.promisify"></a>
 
@@ -2068,6 +2078,17 @@ If value is a number it will be considered as the value for timeout optionIf va
 | --- | --- |
 | attempt | <code>number</code> | 
 | retries | <code>number</code> | 
+
+<a name="module_CPromise..resolveOptionsObject"></a>
+
+### CPromise~resolveOptionsObject : <code>Object</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+**Properties**
+
+| Name | Type | Default |
+| --- | --- | --- |
+| [resolveSignatures] | <code>Boolean</code> | <code>true</code> | 
+| [args] | <code>\*</code> |  | 
 
 <a name="module_CPromise..PromisifyFinalizeFn"></a>
 

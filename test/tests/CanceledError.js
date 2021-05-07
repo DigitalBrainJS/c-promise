@@ -1,5 +1,5 @@
 const assert = require('assert');
-const {CPromise, E_REASON_TIMEOUT, E_REASON_DISPOSED} = require('../../lib/c-promise');
+const {CPromise, E_REASON_TIMEOUT, E_REASON_DISPOSED, E_REASON_CANCELED} = require('../../lib/c-promise');
 const {CanceledError} = CPromise;
 
 module.exports = {
@@ -27,6 +27,26 @@ module.exports = {
                 assert.strictEqual(err, originalErr);
             }
         }
+    },
+
+    'CanceledError.isCanceledError': {
+        'should return true if the object is CanceledError': ()=>{
+            assert.strictEqual(CanceledError.isCanceledError(new CanceledError()), true);
+        },
+
+        'should return true if error codes matched': ()=>{
+            assert.strictEqual(
+              CanceledError.isCanceledError(CanceledError.from(E_REASON_DISPOSED), E_REASON_DISPOSED),
+              true
+            );
+        },
+
+        "should return true if error codes doesn't match": ()=>{
+            assert.strictEqual(
+              CanceledError.isCanceledError(CanceledError.from(E_REASON_DISPOSED), E_REASON_CANCELED),
+              false
+            );
+        },
     }
 }
 
