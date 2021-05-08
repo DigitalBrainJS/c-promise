@@ -1101,6 +1101,7 @@ Creates a new CPromise instance
         * [.onResume(listener)](#module_CPromise..CPromise+onResume) ⇒ <code>CPromise</code>
         * [.onCapture(listener)](#module_CPromise..CPromise+onCapture) ⇒ <code>CPromise</code>
         * [.onDone(listener)](#module_CPromise..CPromise+onDone)
+        * [.onSignal(listener)](#module_CPromise..CPromise+onSignal)
         * [.totalWeight([weight])](#module_CPromise..CPromise+totalWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.innerWeight([weight])](#module_CPromise..CPromise+innerWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.progress([value], [data], [scope])](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
@@ -1139,7 +1140,7 @@ Creates a new CPromise instance
         * [.isCanceledError(thing)](#module_CPromise..CPromise.isCanceledError) ⇒ <code>boolean</code>
         * [.delay(ms, value, [options])](#module_CPromise..CPromise.delay) ⇒ <code>CPromise</code>
         * [.all(iterable, [options])](#module_CPromise..CPromise.all) ⇒ <code>CPromise</code>
-        * [.race(thenables)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
+        * [.race(pending)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
         * [.allSettled(iterable, [options])](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
         * [.retry(fn, [options])](#module_CPromise..CPromise.retry) ⇒ <code>CPromise</code>
         * [.resolve(thing, [options])](#module_CPromise..CPromise.resolve) ⇒ <code>CPromise</code>
@@ -1157,7 +1158,7 @@ Creates a new CPromise instance
         * [.atomic(atomicType)](#module_CPromise..CPromise.atomic)
         * [.done(doneHandler)](#module_CPromise..CPromise.done)
         * [.isPromisifiedFn(fn)](#module_CPromise..CPromise.isPromisifiedFn) ⇒ <code>\*</code> \| <code>boolean</code>
-        * [.isCPromise(thing, anyVersion)](#module_CPromise..CPromise.isCPromise) ⇒ <code>boolean</code>
+        * [.isCPromise(thing, [anyVersion])](#module_CPromise..CPromise.isCPromise) ⇒ <code>boolean</code>
 
 <a name="module_CPromise..CPromise+signal"></a>
 
@@ -1255,6 +1256,17 @@ registers the listener for done event
 | Param | Type |
 | --- | --- |
 | listener | <code>CPDoneListener</code> | 
+
+<a name="module_CPromise..CPromise+onSignal"></a>
+
+#### cPromise.onSignal(listener)
+registers the listener for done event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| listener | <code>CPSignalListener</code> | 
 
 <a name="module_CPromise..CPromise+totalWeight"></a>
 
@@ -1666,7 +1678,7 @@ Returns a single CPromise that resolves to an array of the results of the input 
 | Param | Type |
 | --- | --- |
 | iterable | <code>Iterable</code> \| <code>Generator</code> \| <code>GeneratorFunction</code> \| <code>array</code> | 
-| [options] | <code>AllOptions</code> | 
+| [options] | <code>CPAllOptions</code> | 
 
 **Example**  
 ```js
@@ -1674,14 +1686,14 @@ CPromise.all(function*(){    yield axios.get(url1);    yield axios.get(url2);
 ```
 <a name="module_CPromise..CPromise.race"></a>
 
-#### CPromise.race(thenables) ⇒ <code>CPromise</code>
+#### CPromise.race(pending) ⇒ <code>CPromise</code>
 returns a promise that fulfills or rejects as soon as one of the promises in an iterable fulfills or rejects,with the value or reason from that promise. Other pending promises will be canceled immediately
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
 | Param | Type |
 | --- | --- |
-| thenables | <code>Iterable</code> | 
+| pending | <code>Iterable</code> | 
 
 <a name="module_CPromise..CPromise.allSettled"></a>
 
@@ -1693,7 +1705,7 @@ returns a promise that resolves after all of the given promises have either fulf
 | Param | Type |
 | --- | --- |
 | iterable | <code>Iterable</code> \| <code>Generator</code> \| <code>GeneratorFunction</code> | 
-| [options] | <code>AllOptions</code> | 
+| [options] | <code>CPAllOptions</code> | 
 
 <a name="module_CPromise..CPromise.retry"></a>
 
@@ -1896,15 +1908,15 @@ Returns promisification strategy that was used to the original function
 
 <a name="module_CPromise..CPromise.isCPromise"></a>
 
-#### CPromise.isCPromise(thing, anyVersion) ⇒ <code>boolean</code>
+#### CPromise.isCPromise(thing, [anyVersion]) ⇒ <code>boolean</code>
 Check whether object is CPromise instance
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
-| Param | Type |
-| --- | --- |
-| thing | <code>\*</code> | 
-| anyVersion | <code>boolean</code> | 
+| Param | Type | Default |
+| --- | --- | --- |
+| thing | <code>\*</code> |  | 
+| [anyVersion] | <code>boolean</code> | <code>false</code> | 
 
 <a name="module_CPromise..EventType"></a>
 
@@ -1977,6 +1989,16 @@ If value is a number it will be considered as the value for timeout optionIf va
 | value | <code>\*</code> | 
 | isRejected | <code>boolean</code> | 
 
+<a name="module_CPromise..CPSignalListener"></a>
+
+### CPromise~CPSignalListener ⇒ <code>Boolean</code>
+**Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
+
+| Param | Type |
+| --- | --- |
+| type | <code>Signal</code> | 
+| data | <code>\*</code> | 
+
 <a name="module_CPromise..AtomicType"></a>
 
 ### CPromise~AtomicType : <code>number</code> \| <code>boolean</code> \| <code>&quot;disabled&quot;</code> \| <code>&quot;detached&quot;</code> \| <code>&quot;await&quot;</code>
@@ -2034,18 +2056,18 @@ If value is a number it will be considered as the value for timeout optionIf va
 | isRejected | <code>boolean</code> | 
 | scope | <code>CPromise</code> | 
 
-<a name="module_CPromise..AllOptions"></a>
+<a name="module_CPromise..CPAllOptions"></a>
 
-### CPromise~AllOptions : <code>object</code>
+### CPromise~CPAllOptions : <code>object</code>
 **Kind**: inner typedef of [<code>CPromise</code>](#module_CPromise)  
 **Properties**
 
 | Name | Type | Description |
 | --- | --- | --- |
-| concurrency | <code>number</code> | limit concurrency of promise being run simultaneously |
-| mapper | <code>function</code> | function to map each element |
-| ignoreResults | <code>boolean</code> | do not collect results |
-| signatures | <code>boolean</code> | use advanced signatures for vales resolving |
+| [concurrency] | <code>number</code> | limit concurrency of promise being run simultaneously |
+| [mapper] | <code>function</code> | function to map each element |
+| [ignoreResults] | <code>boolean</code> | do not collect results |
+| [signatures] | <code>boolean</code> | use advanced signatures for vales resolving |
 
 <a name="module_CPromise..CPRetryFunction"></a>
 
@@ -2088,6 +2110,7 @@ If value is a number it will be considered as the value for timeout optionIf va
 | Name | Type | Default |
 | --- | --- | --- |
 | [resolveSignatures] | <code>Boolean</code> | <code>true</code> | 
+| [atomic] | <code>AtomicType</code> | <code>true</code> | 
 | [args] | <code>\*</code> |  | 
 
 <a name="module_CPromise..PromisifyFinalizeFn"></a>

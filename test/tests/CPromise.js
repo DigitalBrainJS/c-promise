@@ -397,7 +397,7 @@ module.exports = {
   },
 
   'CPromise.resolve': {
-    'should convert thing to a CPromise instance': async function () {
+    'should convert object to a CPromise instance': async function () {
       let isCanceled = false;
       const thenable = {
         then() {
@@ -410,8 +410,8 @@ module.exports = {
       const chain = CPromise.resolve(thenable).then(() => {
         assert.fail('not canceled');
       }, (err) => {
-        assert.ok(err instanceof CanceledError);
-        assert.ok(isCanceled)
+        assert.ok(err instanceof CanceledError, 'not a CanceledError instance');
+        assert.ok(isCanceled, 'was not cancelled')
       });
 
       chain.cancel();
