@@ -1,8 +1,9 @@
-import fs from 'fs';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { terser } from "rollup-plugin-terser";
 import json from '@rollup/plugin-json';
+import replace from '@rollup/plugin-replace';
+
 const lib = require("./package.json");
 const outputFileName= 'c-promise';
 const name= "CPromise";
@@ -12,7 +13,9 @@ const input = './lib/c-promise.js';
 const year= new Date().getFullYear();
 const banner= `// ${lib.name} v${lib.version}\n// Copyright (c) ${year===2020? "2020" : "2020-"+ year} ${lib.author.name} <${lib.author.email}>`;
 
-fs.writeFileSync('./lib/env.json', JSON.stringify({version: lib.version}))
+const replaceEnvVars= replace({
+    "require('../package.json').version": `'${lib.version}'`,
+})
 
 export default [
         {
@@ -25,6 +28,7 @@ export default [
                 banner
             },
             plugins: [
+                replaceEnvVars,
                 json(),
                 resolve(),
                 commonjs()
@@ -40,6 +44,7 @@ export default [
                 banner
             },
             plugins: [
+                replaceEnvVars,
                 json(),
                 resolve(),
                 commonjs()
@@ -55,6 +60,7 @@ export default [
                 banner
             },
             plugins: [
+                replaceEnvVars,
                 json(),
                 resolve(),
                 commonjs(),
@@ -71,6 +77,7 @@ export default [
                 banner
             },
             plugins: [
+                replaceEnvVars,
                 json(),
                 resolve(),
                 commonjs()
