@@ -1,3 +1,4 @@
+import fs from 'fs';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import { terser } from "rollup-plugin-terser";
@@ -10,6 +11,8 @@ const input = './lib/c-promise.js';
 
 const year= new Date().getFullYear();
 const banner= `// ${lib.name} v${lib.version}\n// Copyright (c) ${year===2020? "2020" : "2020-"+ year} ${lib.author.name} <${lib.author.email}>`;
+
+fs.writeFileSync('./lib/env.json', JSON.stringify({version: lib.version}))
 
 export default [
         {
