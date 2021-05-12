@@ -1143,7 +1143,7 @@ Creates a new CPromise instance
         * [.race(pending)](#module_CPromise..CPromise.race) ⇒ <code>CPromise</code>
         * [.allSettled(iterable, [options])](#module_CPromise..CPromise.allSettled) ⇒ <code>CPromise</code>
         * [.retry(fn, [options])](#module_CPromise..CPromise.retry) ⇒ <code>CPromise</code>
-        * [.resolve(thing, [options])](#module_CPromise..CPromise.resolve) ⇒ <code>CPromise</code>
+        * [.resolve([thing], [options])](#module_CPromise..CPromise.resolve) ⇒ <code>CPromise</code>
         * [.promisify(originalFn, [options])](#module_CPromise..CPromise.promisify) ⇒ <code>function</code>
         * [.run(generatorFn, [options])](#module_CPromise..CPromise.run) ⇒ <code>CPromise</code>
         * [.async([options])](#module_CPromise..CPromise.async)
@@ -1725,14 +1725,14 @@ Retry async operation
 
 <a name="module_CPromise..CPromise.resolve"></a>
 
-#### CPromise.resolve(thing, [options]) ⇒ <code>CPromise</code>
+#### CPromise.resolve([thing], [options]) ⇒ <code>CPromise</code>
 Converts thing to CPromise using the following rules:- CPromise instance returns as is- Objects with special method defined with key `Symbol.for('toCPromise')` will be converted using this method  The result will be cached for future calls- Thenable wraps into a new CPromise instance, if thenable has the `cancel` method it will be used for canceling- Generator function will be resolved to CPromise- Array will be resoled via `CPromise.all`, arrays with one element (e.g. `[[1000]]`) will be resolved via `CPromise.race`This method returns null if the conversion failed.
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
 | Param | Type |
 | --- | --- |
-| thing | <code>\*</code> | 
+| [thing] | <code>\*</code> | 
 | [options] | <code>resolveOptionsObject</code> \| <code>Boolean</code> | 
 
 <a name="module_CPromise..CPromise.promisify"></a>
