@@ -14,7 +14,7 @@
 - Examples:
     - [cancellation & progress capturing](#progress-capturing-and-cancellation)
     - [pause & resume promise](#pause--resume-promises)
-    - [concurrent limitation](#concurrency-limitation)
+    - [concurrency limitation](#concurrency-limitation)
     - [retrying  async operations](#retrying-async-operations)
     - [abortable fetch with timeout](#abortable-fetch-with-timeout)
     - [wrapping axios request](#wrapping-axios-request)
