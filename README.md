@@ -1113,8 +1113,8 @@ Creates a new CPromise instance
         * [.label([label])](#module_CPromise..CPromise+label) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.resolve(value)](#module_CPromise..CPromise+resolve) ⇒ <code>CPromise</code>
         * [.reject(err)](#module_CPromise..CPromise+reject) ⇒ <code>CPromise</code>
-        * [.pause()](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
-        * [.resume()](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
+        * [.pause(data)](#module_CPromise..CPromise+pause) ⇒ <code>Boolean</code>
+        * [.resume(data)](#module_CPromise..CPromise+resume) ⇒ <code>Boolean</code>
         * [.atomic([type])](#module_CPromise..CPromise+atomic) ⇒
         * [.cancel([reason], [forced])](#module_CPromise..CPromise+cancel)
         * [.emitSignal(type, [data], [handler], [locator])](#module_CPromise..CPromise+emitSignal) ⇒ <code>Boolean</code>
@@ -1187,7 +1187,7 @@ indicates if the promise progress is captured
 <a name="module_CPromise..CPromise+isPaused"></a>
 
 #### cPromise.isPaused ⇒ <code>Boolean</code>
-indicates if the promise is paused
+indicates if the promise chain is paused
 
 **Kind**: instance property of [<code>CPromise</code>](#module_CPromise..CPromise)  
 <a name="module_CPromise..CPromise+isRejected"></a>
@@ -1399,16 +1399,26 @@ Rejects the promise with given error
 
 <a name="module_CPromise..CPromise+pause"></a>
 
-#### cPromise.pause() ⇒ <code>Boolean</code>
+#### cPromise.pause(data) ⇒ <code>Boolean</code>
 Pause promise
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| data | <code>\*</code> | 
+
 <a name="module_CPromise..CPromise+resume"></a>
 
-#### cPromise.resume() ⇒ <code>Boolean</code>
+#### cPromise.resume(data) ⇒ <code>Boolean</code>
 Resume promise
 
 **Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| data | <code>\*</code> | 
+
 <a name="module_CPromise..CPromise+atomic"></a>
 
 #### cPromise.atomic([type]) ⇒

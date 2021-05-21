@@ -285,6 +285,44 @@ module.exports = {
       }, 300);
 
       return chain;
+    },
+
+    'should propagate pause&resume events': async function(){
+      let pauseEvents= [], resumeEvents= [];
+
+      const chain = new CPromise((resolve, reject, {onPause, onResume}) => {
+        setTimeout(resolve, 500);
+        onPause(() => {
+          pauseEvents[0] = true;
+        });
+
+        onResume(() => {
+          resumeEvents[0] = true;
+        });
+      }).then((v, {onPause, onResume}) => {
+        return delay(100);
+      });
+
+      chain.onPause(() => {
+        pauseEvents[1] = true;
+      });
+
+      chain.onResume(() => {
+        resumeEvents[1] = true;
+      });
+
+      chain.pause();
+
+      assert.strictEqual(chain.isPaused, true);
+
+      setTimeout(()=>chain.resume(), 100);
+
+      return chain.then(()=>{
+        assert.ok(pauseEvents[0], 'pause event [0] has not been emitted');
+        assert.ok(resumeEvents[0], 'resume event [0] has not been emitted');
+        assert.ok(pauseEvents[1], 'pause event [1] has not been emitted');
+        assert.ok(resumeEvents[1], 'resume event [1] has not been emitted');
+      });
     }
   },
 
