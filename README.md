@@ -1724,14 +1724,15 @@ Retry async operation
 
 **Kind**: static method of [<code>CPromise</code>](#module_CPromise..CPromise)  
 
-| Param | Type |
-| --- | --- |
-| fn | <code>CPGeneratorRetryFunction</code> \| <code>CPRetryFunction</code> | 
-| [options] | <code>object</code> | 
-| [options.args] | <code>array</code> | 
-| [options.retries] | <code>number</code> | 
-| [options.delayWeight] | <code>number</code> \| <code>CPRetryDelayResolver</code> | 
-| [options.delay] | <code>object</code> | 
+| Param | Type | Default |
+| --- | --- | --- |
+| fn | <code>CPGeneratorRetryFunction</code> \| <code>CPRetryFunction</code> |  | 
+| [options] | <code>Object</code> |  | 
+| [options.args] | <code>Array</code> |  | 
+| [options.retries] | <code>Number</code> |  | 
+| [options.delayWeight] | <code>Number</code> |  | 
+| [options.delay] | <code>Number</code> \| <code>CPRetryDelayResolver</code> |  | 
+| [options.scopeArg] | <code>Boolean</code> | <code>false</code> | 
 
 <a name="module_CPromise..CPromise.resolve"></a>
 
