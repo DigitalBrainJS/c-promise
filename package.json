@@ -42,7 +42,7 @@
     "playground:decorators": "rollup ./playground/src/decorators.js --file ./playground/build/decorators.js --format cjs --config ./playground/rollup.config.js && node playground/build/decorators.js || true",
     "playground:decorators:legacy": "rollup ./playground/src/decorators.js --file ./playground/build/decorators.js --format cjs --config ./playground/rollup.config.js --environment decorators:legacy && node playground/build/decorators.js || true",
     "playground:decorators:watch": "nodemon --watch ./playground/src/ --watch lib/ --exec \"npm run playground:decorators\"",
-    "docs": "jsdoc2md -t ./jsdoc2md/README.hbs.md ./lib/c-promise.js > ./README.md",
+    "docs": "jsdoc2md -t ./jsdoc2md/API.hbs.md ./lib/c-promise.js > ./API.md",
     "docs:namepaths": "jsdoc2md ./lib/c-promise.js --namepaths"
   },
   "husky": {
