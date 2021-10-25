@@ -169,14 +169,14 @@ the user canceled the promise immediately after the promise was resolved,
 
 ## Ecosystem
 #### React
-* [use-async-effect](https://www.npmjs.com/package/use-async-effect2) - feature-rich React async hooks that built on top of the cancellable promises ([`CPromise`](https://www.npmjs.com/package/c-promise2))
+* [use-async-effect2](https://www.npmjs.com/package/use-async-effect2) - feature-rich React async hooks that built on top of the cancellable promises ([CPromise](https://www.npmjs.com/package/c-promise2))
 
 #### Data fetching
-* [cp-axios](https://www.npmjs.com/package/cp-axios) - axios cancellable wrapper that supports CPromise context. Can be directly used in [`use-async-effect2`](https://www.npmjs.com/package/use-async-effect2) or general CPromise context
-* [cp-fetch](https://www.npmjs.com/package/cp-fetch) - cross-platform fetch wrapper that can be used in cooperation with [`use-async-effect2`](https://www.npmjs.com/package/use-async-effect2) or general [`CPromise`](https://www.npmjs.com/package/c-promise2) chains
+* [cp-axios](https://www.npmjs.com/package/cp-axios) - axios cancellable wrapper that supports CPromise context. Can be directly used in [use-async-effect2](https://www.npmjs.com/package/use-async-effect2) or general CPromise context
+* [cp-fetch](https://www.npmjs.com/package/cp-fetch) - cross-platform fetch wrapper that can be used in cooperation with [use-async-effect2](https://www.npmjs.com/package/use-async-effect2) or general [CPromise](https://www.npmjs.com/package/c-promise2) chains
 
 #### Backend
-* [cp-koa](https://www.npmjs.com/package/cp-koa) - a wrapper for [`koa`](https://www.npmjs.com/package/koa), that implements cancellable middlewares/routes to the framework
+* [cp-koa](https://www.npmjs.com/package/cp-koa) - a wrapper for [`koa`](https://www.npmjs.com/package/koa) that adds cancellable middlewares/routes to the framework
 
 ## Learn more
 
