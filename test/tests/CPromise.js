@@ -63,7 +63,7 @@ module.exports = {
         assert.fail('promise has not been canceled');
       }, (err) => {
         if (err instanceof CPromise.CanceledError) {
-          if (Date.now() - timestamp < timeout) {
+          if (Date.now() - timestamp + 5 < timeout) {
             assert.fail('early cancellation detected')
           }
           return;
@@ -241,7 +241,7 @@ module.exports = {
         })
         .then(() => {
           assertProgress(0.8)
-        });//.captureProgress();
+        });
 
       const assertProgress = (expected) => {
         assert.equal(chain.progress(), expected);
@@ -379,7 +379,7 @@ module.exports = {
     }
   },
 
-  'CPromise#setProgress()': {
+  'CPromise#progress()': {
     'should set the value of the promise progress': function (done) {
       const p = new CPromise(function (resolve, reject) {
         let progress = 0;
@@ -392,7 +392,7 @@ module.exports = {
             resolve('done');
           }
 
-        }, 10);
+        }, 200);
       });
 
       const expect = [0.2, 0.4, 0.6, 0.8, 1];
@@ -530,20 +530,21 @@ module.exports = {
 
       'progress capturing': {
         'should support progress capturing': async function () {
+          this.timeout(5000);
           const expected = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 1];
           let index = 0;
 
           const fn= CPromise.promisify(function*(){
             this.innerWeight(2);
-            yield CPromise.delay(100);
-            yield CPromise.delay(100);
+            yield CPromise.delay(250);
+            yield CPromise.delay(250);
           })
 
           return CPromise.resolve(function* () {
             this.innerWeight(10);
             let i = 9;
             while (--i >= 0) {
-              yield CPromise.delay(100);
+              yield CPromise.delay(250);
             }
             yield fn();
           }).progress(value => {
