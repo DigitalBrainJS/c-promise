@@ -1071,5 +1071,23 @@ module.exports = {
         }).then(resolve, reject);
       });
     }
+  },
+
+  'signals': {
+    'onSignal': async function () {
+      let signalEmitted = false;
+      const promise = CPromise.delay(1000).onSignal('test', (data) => {
+        assert.deepStrictEqual(data, {x: 1});
+        signalEmitted = true;
+      }).then(() => {
+        assert.ok(signalEmitted, 'signal was not emitted');
+      });
+
+      await CPromise.delay(500);
+
+      promise.emitSignal('test', {x: 1});
+
+      return promise;
+    }
   }
 };

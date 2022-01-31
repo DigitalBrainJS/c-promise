@@ -143,6 +143,7 @@ Creates a new CPromise instance
         * [.onCapture(listener)](#module_CPromise..CPromise+onCapture) ⇒ <code>CPromise</code>
         * [.onDone(listener)](#module_CPromise..CPromise+onDone)
         * [.onSignal(listener)](#module_CPromise..CPromise+onSignal)
+        * [.onSignal(signal, listener)](#module_CPromise..CPromise+onSignal)
         * [.totalWeight([weight])](#module_CPromise..CPromise+totalWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.innerWeight([weight])](#module_CPromise..CPromise+innerWeight) ⇒ <code>Number</code> \| <code>CPromise</code>
         * [.progress([value], [data], [scope])](#module_CPromise..CPromise+progress) ⇒ <code>Number</code> \| <code>CPromise</code>
@@ -307,6 +308,18 @@ registers the listener for done event
 
 | Param | Type |
 | --- | --- |
+| listener | <code>CPSignalListener</code> | 
+
+<a name="module_CPromise..CPromise+onSignal"></a>
+
+#### cPromise.onSignal(signal, listener)
+registers the listener for done event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| signal | <code>Signal</code> | 
 | listener | <code>CPSignalListener</code> | 
 
 <a name="module_CPromise..CPromise+totalWeight"></a>
