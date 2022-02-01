@@ -178,10 +178,10 @@ module.exports = {
             @innerWeight(4)
             @async
             *generator() {
-                yield delay(100);
-                yield delay(100);
-                yield delay(100);
-                yield delay(100);
+                yield delay(300);
+                yield delay(300);
+                yield delay(300);
+                yield delay(300);
             }
         }
 

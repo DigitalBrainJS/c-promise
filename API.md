@@ -169,6 +169,7 @@ Creates a new CPromise instance
         * [.canceled([onCanceled])](#module_CPromise..CPromise+canceled) ⇒ <code>CPromise</code>
         * [.listen(signal)](#module_CPromise..CPromise+listen) ⇒ <code>CPromise</code>
         * [.on(type, listener, [prepend])](#module_CPromise..CPromise+on) ⇒ <code>CPromise</code>
+        * [.hasListener(event, listener)](#module_CPromise..CPromise+hasListener) ⇒ <code>boolean</code>
         * [.off(type, listener)](#module_CPromise..CPromise+off) ⇒ <code>CPromise</code>
         * [.listenersCount(type)](#module_CPromise..CPromise+listenersCount) ⇒ <code>Number</code>
         * [.hasListeners(type)](#module_CPromise..CPromise+hasListeners) ⇒ <code>Boolean</code>
@@ -613,6 +614,18 @@ adds a new listener
 | type | <code>EventType</code> |  | 
 | listener | <code>function</code> |  | 
 | [prepend] | <code>Boolean</code> | <code>false</code> | 
+
+<a name="module_CPromise..CPromise+hasListener"></a>
+
+#### cPromise.hasListener(event, listener) ⇒ <code>boolean</code>
+Check whether the listener is already registered to the specific event
+
+**Kind**: instance method of [<code>CPromise</code>](#module_CPromise..CPromise)  
+
+| Param | Type |
+| --- | --- |
+| event | <code>EventType</code> | 
+| listener | <code>function</code> | 
 
 <a name="module_CPromise..CPromise+off"></a>
 

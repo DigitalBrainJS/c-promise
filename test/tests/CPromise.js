@@ -14,6 +14,13 @@ const makePromise = (ms, value, handler) => {
   });
 };
 
+const valuesList = (...expected) => {
+  let i = 0;
+  return (value) => {
+    assert.deepStrictEqual(value, expected[i++]);
+  }
+}
+
 module.exports = {
   constructor: {
     'should create instance of CancelablePromise': function () {
@@ -381,6 +388,7 @@ module.exports = {
 
   'CPromise#progress()': {
     'should set the value of the promise progress': function (done) {
+      this.timeout(5000);
       const p = new CPromise(function (resolve, reject) {
         let progress = 0;
         let i = 0;
@@ -392,7 +400,7 @@ module.exports = {
             resolve('done');
           }
 
-        }, 200);
+        }, 300);
       });
 
       const expect = [0.2, 0.4, 0.6, 0.8, 1];
@@ -401,7 +409,7 @@ module.exports = {
       p.on('progress', (actualProgress, scope, data) => {
         const expected = expect[index];
 
-        assert.equal(actualProgress, expected);
+        assert.strictEqual(actualProgress, expected);
         assert.deepStrictEqual(data, {description: 'test', value: index});
         index++;
       })
@@ -741,60 +749,83 @@ module.exports = {
     }
   },
 
-  'CPromise.on': {
-    'should add new listener': function () {
-      const ee = new CPromise(resolve => {
-      });
-      assert.equal(ee.listenersCount('test'), 0);
-      ee.on('test', function () {
-      });
-      assert.equal(ee.listenersCount('test'), 1);
-      ee.on('test', function () {
-      });
-      assert.equal(ee.listenersCount('test'), 2);
-    }
-  },
+  'events emitter': {
+    'CPromise.on': {
+      'should add new listener': function () {
+        const ee = new CPromise(resolve => {
+        });
+        assert.equal(ee.listenersCount('test'), 0);
+        ee.on('test', function () {
+        });
+        assert.equal(ee.listenersCount('test'), 1);
+        ee.on('test', function () {
+        });
+        assert.equal(ee.listenersCount('test'), 2);
+      }
+    },
 
-  'CPromise.off': {
-    'should remove the listener': function () {
-      const ee = new CPromise(resolve => {
-      });
-      const listener1 = function () {
-      };
-      const listener2 = function () {
-      };
-      ee.on('test', listener1);
-      assert.equal(ee.listenersCount('test'), 1);
-      ee.on('test', listener2);
-      assert.equal(ee.listenersCount('test'), 2);
-      ee.off('test', listener1);
-      assert.equal(ee.listenersCount('test'), 1);
-      ee.off('test', listener2);
-      assert.equal(ee.listenersCount('test'), 0);
-    }
-  },
+    'CPromise.off': {
+      'should remove the listener': function () {
+        const ee = new CPromise(resolve => {
+        });
+        const listener1 = function () {
+        };
+        const listener2 = function () {
+        };
+        ee.on('test', listener1);
+        assert.equal(ee.listenersCount('test'), 1);
+        ee.on('test', listener2);
+        assert.equal(ee.listenersCount('test'), 2);
+        ee.off('test', listener1);
+        assert.equal(ee.listenersCount('test'), 1);
+        ee.off('test', listener2);
+        assert.equal(ee.listenersCount('test'), 0);
+      }
+    },
 
-  'CPromise.emit': {
-    'should emit the event listeners': function () {
-      const ee = new CPromise(resolve => {
-      });
-      let invoked1, invoked2;
-      const listener1 = function (...data) {
-        invoked1 = true;
-        assert.deepStrictEqual(data, [1, 2, 3]);
-      };
-      const listener2 = function (...data) {
-        invoked2 = true;
-        assert.deepStrictEqual(data, [1, 2, 3]);
-      };
-      ee.on('test', listener1);
-      ee.on('test', listener2);
+    'CPromise.emit': {
+      'should emit the event listeners': function () {
+        const ee = new CPromise(resolve => {
+        });
+        let invoked1, invoked2;
+        const listener1 = function (...data) {
+          invoked1 = true;
+          assert.deepStrictEqual(data, [1, 2, 3]);
+        };
+        const listener2 = function (...data) {
+          invoked2 = true;
+          assert.deepStrictEqual(data, [1, 2, 3]);
+        };
+        ee.on('test', listener1);
+        ee.on('test', listener2);
 
-      ee.emit('test', 1, 2, 3);
+        ee.emit('test', 1, 2, 3);
 
-      assert.ok(invoked1);
-      assert.ok(invoked2);
-    }
+        assert.ok(invoked1);
+        assert.ok(invoked2);
+      }
+    },
+
+    'CPromise.hasListener': {
+      'should return true if the listener is already registered to the specific event': function () {
+        const ee = new CPromise(resolve => {
+        });
+        const listener1 = function (...data) {
+        };
+        const listener2 = function (...data) {
+        };
+        const listener3 = function (...data) {
+        };
+        ee.on('test1', listener1);
+        ee.on('test1', listener2);
+        ee.on('test2', listener3);
+
+        assert.strictEqual(ee.hasListener('test1', listener1), true);
+        assert.strictEqual(ee.hasListener('test1', listener2), true);
+        assert.strictEqual(ee.hasListener('test1', listener3), false);
+        assert.strictEqual(ee.hasListener('test2', listener3), true);
+      }
+    },
   },
 
   'CPromise.promisify': {
@@ -1070,6 +1101,31 @@ module.exports = {
           assert.strictEqual(index, 4);
         }).then(resolve, reject);
       });
+    }
+  },
+
+  'CPromise.run': {
+    'it should support progress capturing': async function () {
+      this.timeout(5000)
+
+      const assertProgress = valuesList(0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1);
+
+      const fn = CPromise.promisify(function* () {
+        this.innerWeight(0);
+        const max = 10;
+
+        for (let i = 0; i < max; i++) {
+          this.progress(i / max);
+          yield CPromise.delay(300);
+        }
+
+      });
+
+      return CPromise.run(function* () {
+        this.innerWeight(2);
+        yield CPromise.delay(500);
+        yield fn();
+      }).progress(assertProgress);
     }
   },
 
